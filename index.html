@@ -1,0 +1,792 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Controle OS e Estoque</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <img src="./logo.jpg" alt="Logo da empresa" />
+          <div>
+            <strong>Controle OS</strong>
+            <span>Agenda e estoque</span>
+          </div>
+        </div>
+
+        <nav class="nav-list" aria-label="Menu principal">
+          <button class="active">Painel</button>
+          <button>Agenda</button>
+          <button>Ordens</button>
+          <button>Estoque</button>
+          <button>Clientes</button>
+          <button>Equipe</button>
+          <button>Financeiro</button>
+          <button>Relatorios</button>
+        </nav>
+
+        <div class="sidebar-summary">
+          <span>Plantao do dia</span>
+          <strong>6 tecnicos em campo</strong>
+          <small>18 OS abertas, 7 concluidas</small>
+        </div>
+      </aside>
+
+      <main class="desktop-view">
+        <header class="topbar">
+          <div>
+            <p>Gestao operacional</p>
+            <h1>Agenda mensal, OS e estoque</h1>
+          </div>
+          <div class="topbar-actions">
+            <button class="icon-button" aria-label="Pesquisar">⌕</button>
+            <button class="secondary-button">Exportar</button>
+            <button class="primary-button">Nova OS</button>
+          </div>
+        </header>
+
+        <section class="metrics-grid" aria-label="Indicadores">
+          <article class="metric-card">
+            <span>OS em andamento</span>
+            <strong>18</strong>
+            <small>4 com prioridade alta</small>
+          </article>
+          <article class="metric-card">
+            <span>Estoque critico</span>
+            <strong>9</strong>
+            <small>Itens abaixo do minimo</small>
+          </article>
+          <article class="metric-card">
+            <span>SLA no prazo</span>
+            <strong>92%</strong>
+            <small>Ultimos 30 dias</small>
+          </article>
+          <article class="metric-card">
+            <span>Faturamento previsto</span>
+            <strong>R$ 86,4k</strong>
+            <small>Materiais + servicos agendados</small>
+          </article>
+        </section>
+
+        <section class="workspace-grid">
+          <article class="calendar-panel dispatch-panel">
+            <div class="section-heading">
+              <div>
+                <span>Agenda das equipes</span>
+                <h2>Arraste a OS para a equipe responsavel</h2>
+              </div>
+              <div class="segmented">
+                <button class="active">Hoje</button>
+                <button>Semana</button>
+                <button>Mes</button>
+              </div>
+            </div>
+
+            <div class="dispatch-board">
+              <section class="available-orders" aria-label="OS disponiveis">
+                <div class="dispatch-title">
+                  <strong>OS disponiveis</strong>
+                  <span>Arraste para uma equipe</span>
+                </div>
+                <article class="dispatch-card high" draggable="true">
+                  <strong>OS-1052</strong>
+                  <span>Banco Solar - Alarme disparando</span>
+                  <small>Prioridade alta · 08:30</small>
+                </article>
+                <article class="dispatch-card" draggable="true">
+                  <strong>OS-1053</strong>
+                  <span>Loja Prime - Camera sem imagem</span>
+                  <small>Preventiva · 10:00</small>
+                </article>
+                <article class="dispatch-card warning" draggable="true">
+                  <strong>OS-1054</strong>
+                  <span>Condominio Lago - Fechadura</span>
+                  <small>Instalacao · 13:30</small>
+                </article>
+                <article class="dispatch-card" draggable="true">
+                  <strong>OS-1055</strong>
+                  <span>Galpao Norte - Rede e DVR</span>
+                  <small>Manutencao · 15:00</small>
+                </article>
+              </section>
+
+              <section class="team-agendas" aria-label="Agendas das 5 equipes">
+                <article class="team-column" data-team="Equipe 1" data-status="em-atendimento">
+                  <div class="team-column-head">
+                    <strong>Equipe 1 <span class="team-status-dot teal"></span></strong>
+                    <span>Bruno e Leo</span>
+                    <small>Em atendimento</small>
+                  </div>
+                  <div class="team-dropzone">
+                    <article class="dispatch-card assigned" draggable="true">
+                      <strong>OS-1048</strong>
+                      <span>Alpha Condominio</span>
+                      <small>09:30 · 3 fotos pendentes</small>
+                    </article>
+                  </div>
+                </article>
+                <article class="team-column" data-team="Equipe 2" data-status="a-caminho">
+                  <div class="team-column-head">
+                    <strong>Equipe 2 <span class="team-status-dot amber"></span></strong>
+                    <span>Ana e Rui</span>
+                    <small>A caminho</small>
+                  </div>
+                  <div class="team-dropzone">
+                    <article class="dispatch-card assigned warning" draggable="true">
+                      <strong>OS-1050</strong>
+                      <span>Clinica Santa Clara</span>
+                      <small>14:00 · assinatura pendente</small>
+                    </article>
+                  </div>
+                </article>
+                <article class="team-column" data-team="Equipe 3" data-status="em-rota">
+                  <div class="team-column-head">
+                    <strong>Equipe 3 <span class="team-status-dot teal"></span></strong>
+                    <span>Marcos e Bia</span>
+                    <small>Em rota</small>
+                  </div>
+                  <div class="team-dropzone">
+                    <article class="dispatch-card assigned" draggable="true">
+                      <strong>OS-1049</strong>
+                      <span>Mercado Central</span>
+                      <small>11:00 · em rota</small>
+                    </article>
+                  </div>
+                </article>
+                <article class="team-column" data-team="Equipe 4" data-status="agendada">
+                  <div class="team-column-head">
+                    <strong>Equipe 4 <span class="team-status-dot amber"></span></strong>
+                    <span>Diego e Caio</span>
+                    <small>Agendada</small>
+                  </div>
+                  <div class="team-dropzone">
+                    <article class="dispatch-card assigned" draggable="true">
+                      <strong>OS-1051</strong>
+                      <span>Residencial Norte</span>
+                      <small>16:30 · instalacao</small>
+                    </article>
+                  </div>
+                </article>
+                <article class="team-column" data-team="Equipe 5" data-status="disponivel">
+                  <div class="team-column-head">
+                    <strong>Equipe 5 <span class="team-status-dot teal"></span></strong>
+                    <span>Plantao</span>
+                    <small>Disponivel</small>
+                  </div>
+                  <div class="team-dropzone empty-state">
+                    <span class="empty-placeholder">Solte uma OS aqui</span>
+                  </div>
+                </article>
+              </section>
+            </div>
+          </article>
+
+          <article class="orders-panel">
+            <div class="section-heading">
+              <div>
+                <span>Hoje</span>
+                <h2>Fila de OS</h2>
+              </div>
+              <button class="ghost-button">Ver todas</button>
+            </div>
+
+            <div class="order-list">
+              <article class="order-row high">
+                <div class="order-code">OS-1048</div>
+                <div>
+                  <strong>Cliente Alpha Condominio</strong>
+                  <span>Portao automatico sem resposta · 2 produtos no cliente</span>
+                </div>
+                <small>Bruno · 09:30</small>
+              </article>
+              <article class="order-row">
+                <div class="order-code">OS-1049</div>
+                <div>
+                  <strong>Mercado Central</strong>
+                  <span>Preventiva em cameras CFTV</span>
+                </div>
+                <small>Marcos · 11:00</small>
+              </article>
+              <article class="order-row warning">
+                <div class="order-code">OS-1050</div>
+                <div>
+                  <strong>Clinica Santa Clara</strong>
+                  <span>Troca de fonte e bateria</span>
+                </div>
+                <small>Ana · 14:00</small>
+              </article>
+              <article class="order-row">
+                <div class="order-code">OS-1051</div>
+                <div>
+                  <strong>Residencial Norte</strong>
+                  <span>Instalacao de leitor facial</span>
+                </div>
+                <small>Diego · 16:30</small>
+              </article>
+            </div>
+          </article>
+
+          <article class="stock-panel">
+            <div class="section-heading">
+              <div>
+                <span>Almoxarifado</span>
+                <h2>Estoque critico</h2>
+              </div>
+              <button class="ghost-button">Reposicao</button>
+            </div>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Min.</th>
+                  <th>Atual</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Fonte 12V 2A</td>
+                  <td>20</td>
+                  <td>8</td>
+                  <td><span class="pill red">Critico</span></td>
+                </tr>
+                <tr>
+                  <td>Bateria 7Ah</td>
+                  <td>12</td>
+                  <td>10</td>
+                  <td><span class="pill amber">Baixo</span></td>
+                </tr>
+                <tr>
+                  <td>Cabo UTP Cat6</td>
+                  <td>6</td>
+                  <td>5</td>
+                  <td><span class="pill amber">Baixo</span></td>
+                </tr>
+                <tr>
+                  <td>Sensor magnetico</td>
+                  <td>30</td>
+                  <td>42</td>
+                  <td><span class="pill teal">Ok</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </article>
+
+          <article class="finance-panel admin-only" aria-label="Painel financeiro do administrador">
+            <div class="section-heading">
+              <div>
+                <span>Somente administrador</span>
+                <h2>Financeiro mensal</h2>
+              </div>
+              <span class="pill dark-pill">Acesso restrito</span>
+            </div>
+
+            <div class="finance-summary">
+              <div>
+                <span>Material vendido no mes</span>
+                <strong>R$ 34,6k</strong>
+                <small>214 itens vendidos</small>
+              </div>
+              <div>
+                <span>Servicos agendados</span>
+                <strong>R$ 51,8k</strong>
+                <small>38 OS com valor definido</small>
+              </div>
+              <div>
+                <span>Faturamento previsto</span>
+                <strong>R$ 86,4k</strong>
+                <small>Junho 2026</small>
+              </div>
+              <div>
+                <span>Valor total do estoque</span>
+                <strong>R$ 128,9k</strong>
+                <small>Custo estimado dos itens</small>
+              </div>
+            </div>
+
+            <div class="monthly-finance">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Mes</th>
+                    <th>Material vendido</th>
+                    <th>Valor dos servicos</th>
+                    <th>Previsto</th>
+                    <th>Estoque total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Mar/2026</td>
+                    <td>R$ 27.400</td>
+                    <td>R$ 44.200</td>
+                    <td><strong>R$ 71.600</strong></td>
+                    <td>R$ 121.300</td>
+                  </tr>
+                  <tr>
+                    <td>Abr/2026</td>
+                    <td>R$ 31.850</td>
+                    <td>R$ 48.900</td>
+                    <td><strong>R$ 80.750</strong></td>
+                    <td>R$ 126.700</td>
+                  </tr>
+                  <tr>
+                    <td>Mai/2026</td>
+                    <td>R$ 29.600</td>
+                    <td>R$ 46.400</td>
+                    <td><strong>R$ 76.000</strong></td>
+                    <td>R$ 119.500</td>
+                  </tr>
+                  <tr>
+                    <td>Jun/2026</td>
+                    <td>R$ 34.600</td>
+                    <td>R$ 51.800</td>
+                    <td><strong>R$ 86.400</strong></td>
+                    <td>R$ 128.900</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="reports-panel admin-only" aria-label="Relatorios operacionais">
+            <div class="section-heading">
+              <div>
+                <span>Gestao e supervisao</span>
+                <h2>Relatorios</h2>
+              </div>
+              <div class="segmented">
+                <button class="active">Equipes</button>
+                <button>Instrucao OS</button>
+              </div>
+            </div>
+
+            <div class="reports-grid">
+              <section class="report-card">
+                <div class="report-heading">
+                  <div>
+                    <span>Relatorio por equipe</span>
+                    <strong>Produtividade e qualidade</strong>
+                  </div>
+                  <button class="ghost-button">Exportar</button>
+                </div>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Equipe</th>
+                      <th>OS concluidas</th>
+                      <th>Tempo medio</th>
+                      <th>Fotos</th>
+                      <th>Assinaturas</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Equipe 1</td>
+                      <td>18</td>
+                      <td>1h42</td>
+                      <td>100%</td>
+                      <td>100%</td>
+                      <td><span class="pill teal">No padrao</span></td>
+                    </tr>
+                    <tr>
+                      <td>Equipe 2</td>
+                      <td>14</td>
+                      <td>2h05</td>
+                      <td>96%</td>
+                      <td>93%</td>
+                      <td><span class="pill amber">Acompanhar</span></td>
+                    </tr>
+                    <tr>
+                      <td>Equipe 3</td>
+                      <td>16</td>
+                      <td>1h58</td>
+                      <td>98%</td>
+                      <td>100%</td>
+                      <td><span class="pill teal">No padrao</span></td>
+                    </tr>
+                    <tr>
+                      <td>Equipe 4</td>
+                      <td>11</td>
+                      <td>2h26</td>
+                      <td>91%</td>
+                      <td>88%</td>
+                      <td><span class="pill amber">Revisar</span></td>
+                    </tr>
+                    <tr>
+                      <td>Equipe 5</td>
+                      <td>7</td>
+                      <td>1h35</td>
+                      <td>100%</td>
+                      <td>100%</td>
+                      <td><span class="pill teal">Plantao ok</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+
+              <section class="report-card">
+                <div class="report-heading">
+                  <div>
+                    <span>Quem instrui as OS</span>
+                    <strong>Distribuicao, orientacao e pendencias</strong>
+                  </div>
+                  <button class="ghost-button">Detalhar</button>
+                </div>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Responsavel</th>
+                      <th>OS instruidas</th>
+                      <th>Redirecionadas</th>
+                      <th>Pendencias</th>
+                      <th>Ultima acao</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Administrador</td>
+                      <td>31</td>
+                      <td>4</td>
+                      <td>2</td>
+                      <td>OS-1051 para Equipe 4</td>
+                    </tr>
+                    <tr>
+                      <td>Supervisor Campo</td>
+                      <td>22</td>
+                      <td>3</td>
+                      <td>1</td>
+                      <td>Checklist reforcado OS-1050</td>
+                    </tr>
+                    <tr>
+                      <td>Plantao</td>
+                      <td>9</td>
+                      <td>2</td>
+                      <td>0</td>
+                      <td>Apoio enviado para Equipe 5</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+            </div>
+          </article>
+
+          <article class="profiles-panel admin-only" aria-label="Perfis de usuario e permissoes">
+            <div class="section-heading">
+              <div>
+                <span>Autenticacao e autorizacao</span>
+                <h2>Perfis de usuario</h2>
+              </div>
+              <span class="pill dark-pill">Regras de acesso</span>
+            </div>
+
+            <div class="profiles-grid">
+              <article class="profile-card">
+                <strong>Administrador</strong>
+                <span>Ve tudo, faturamento, estoque, OS, relatorios e aprova materiais.</span>
+              </article>
+              <article class="profile-card">
+                <strong>Responsavel estoque</strong>
+                <span>Cadastra produtos, movimenta estoque, aprova, separa e confirma retirada.</span>
+              </article>
+              <article class="profile-card">
+                <strong>Instrutor de OS</strong>
+                <span>Cria e edita OS, vincula cliente/tecnico e solicita material sem alterar estoque.</span>
+              </article>
+              <article class="profile-card">
+                <strong>Tecnico de campo</strong>
+                <span>Ve apenas suas OS, atualiza status, adiciona fotos, assinatura e solicita material.</span>
+              </article>
+            </div>
+          </article>
+
+          <article class="client-history-panel admin-only" aria-label="Historico do cliente com fotos e assinatura">
+            <div class="section-heading">
+              <div>
+                <span>Cliente Alpha Condominio</span>
+                <h2>Historico do cliente</h2>
+              </div>
+              <button class="ghost-button">Abrir cadastro</button>
+            </div>
+
+            <div class="client-history-list">
+              <article class="client-history-item">
+                <div class="history-summary">
+                  <span>OS-1048 · 05/06/2026</span>
+                  <strong>Portao automatico sem resposta</strong>
+                  <small>Equipe 1 · Bruno · Servico em andamento</small>
+                </div>
+                <div class="history-proof-strip" aria-label="Fotos e assinatura da OS-1048">
+                  <button class="history-proof before">
+                    <span>Foto 1</span>
+                    <strong>Antes</strong>
+                  </button>
+                  <button class="history-proof during">
+                    <span>Foto 2</span>
+                    <strong>Durante</strong>
+                  </button>
+                  <button class="history-proof after">
+                    <span>Foto 3</span>
+                    <strong>Depois</strong>
+                  </button>
+                  <button class="history-signature">
+                    <span>Assinatura</span>
+                    <strong>Cliente Alpha</strong>
+                  </button>
+                </div>
+              </article>
+
+              <article class="client-history-item muted-history">
+                <div class="history-summary">
+                  <span>OS-0987 · 18/05/2026</span>
+                  <strong>Preventiva do motor e sensores</strong>
+                  <small>Equipe 3 · Marcos · Concluida</small>
+                </div>
+                <div class="history-proof-strip" aria-label="Fotos e assinatura da OS-0987">
+                  <button class="history-proof before">
+                    <span>Foto 1</span>
+                    <strong>Antes</strong>
+                  </button>
+                  <button class="history-proof during">
+                    <span>Foto 2</span>
+                    <strong>Durante</strong>
+                  </button>
+                  <button class="history-proof after">
+                    <span>Foto 3</span>
+                    <strong>Depois</strong>
+                  </button>
+                  <button class="history-signature">
+                    <span>Assinatura</span>
+                    <strong>Sindico</strong>
+                  </button>
+                </div>
+              </article>
+            </div>
+          </article>
+
+          <article class="team-panel">
+            <div class="section-heading">
+              <div>
+                <span>Campo</span>
+                <h2>Status das equipes e tecnicos</h2>
+              </div>
+              <button class="ghost-button">Mapa</button>
+            </div>
+
+            <div class="team-status-grid" aria-label="Resumo do status das equipes">
+              <button class="team-status-card active" data-team-detail="Equipe 1" data-team-state="Em atendimento" data-team-members="Bruno, Leo" data-team-os="OS-1048">
+                <strong>Equipe 1</strong>
+                <span>Em atendimento</span>
+              </button>
+              <button class="team-status-card" data-team-detail="Equipe 2" data-team-state="A caminho" data-team-members="Ana, Rui" data-team-os="OS-1050">
+                <strong>Equipe 2</strong>
+                <span>A caminho</span>
+              </button>
+              <button class="team-status-card" data-team-detail="Equipe 3" data-team-state="Em rota" data-team-members="Marcos, Bia" data-team-os="OS-1049">
+                <strong>Equipe 3</strong>
+                <span>Em rota</span>
+              </button>
+              <button class="team-status-card" data-team-detail="Equipe 4" data-team-state="Agendada" data-team-members="Diego, Caio" data-team-os="OS-1051">
+                <strong>Equipe 4</strong>
+                <span>Agendada</span>
+              </button>
+              <button class="team-status-card" data-team-detail="Equipe 5" data-team-state="Disponivel" data-team-members="Plantao" data-team-os="Sem OS">
+                <strong>Equipe 5</strong>
+                <span>Disponivel</span>
+              </button>
+            </div>
+
+            <div class="technician-routing">
+              <div class="technician-list" aria-label="Tecnicos">
+                <button class="technician-chip active" data-name="Bruno" data-status="Em atendimento" data-team="Equipe 1">Bruno</button>
+                <button class="technician-chip" data-name="Ana" data-status="A caminho" data-team="Equipe 2">Ana</button>
+                <button class="technician-chip" data-name="Marcos" data-status="Checklist final" data-team="Equipe 3">Marcos</button>
+                <button class="technician-chip" data-name="Diego" data-status="Disponivel" data-team="Equipe 4">Diego</button>
+              </div>
+
+              <div class="technician-detail">
+                <div>
+                  <span>Tecnico selecionado</span>
+                  <strong class="selected-tech-name">Bruno</strong>
+                </div>
+                <div>
+                  <span>Status</span>
+                  <strong class="selected-tech-status">Em atendimento</strong>
+                </div>
+                <div>
+                  <span>Equipe atual</span>
+                  <strong class="selected-tech-team">Equipe 1</strong>
+                </div>
+                <label>
+                  Redirecionar para
+                  <select class="team-redirect-select">
+                    <option>Equipe 1</option>
+                    <option>Equipe 2</option>
+                    <option>Equipe 3</option>
+                    <option>Equipe 4</option>
+                    <option>Equipe 5</option>
+                  </select>
+                </label>
+                <button class="primary-button redirect-tech-button">Redirecionar tecnico</button>
+              </div>
+            </div>
+
+            <div class="selected-team-detail">
+              <span>Equipe selecionada</span>
+              <strong class="selected-team-title">Equipe 1</strong>
+              <small class="selected-team-copy">Bruno, Leo · Em atendimento · OS-1048</small>
+            </div>
+          </article>
+        </section>
+      </main>
+
+      <main class="mobile-view">
+        <header class="mobile-header">
+          <img src="./logo.jpg" alt="Logo da empresa" />
+          <div>
+            <span>Area do tecnico</span>
+            <strong>Minhas OS</strong>
+          </div>
+          <button class="icon-button" aria-label="Menu">☰</button>
+        </header>
+
+        <section class="tech-status">
+          <div>
+            <span>Hoje, 05/06</span>
+            <strong>4 atendimentos</strong>
+          </div>
+          <button class="primary-button">Iniciar rota</button>
+        </section>
+
+        <section class="mobile-tabs" aria-label="Filtro de OS">
+          <button class="active">Agora</button>
+          <button>Proximas</button>
+          <button>Concluidas</button>
+        </section>
+
+        <article class="mobile-order active-order">
+          <div class="mobile-order-top">
+            <span class="pill red">Alta</span>
+            <strong>OS-1048</strong>
+          </div>
+          <h2>Alpha Condominio</h2>
+          <p>Portao automatico sem resposta. Verificar central, fonte e sensores.</p>
+          <div class="mobile-details">
+            <span>09:30</span>
+            <span>Rua das Flores, 120</span>
+          </div>
+          <div class="mobile-actions">
+            <button class="secondary-button">Ligar</button>
+            <button class="secondary-button">Rota</button>
+            <button class="primary-button">Cheguei</button>
+          </div>
+        </article>
+
+        <section class="mobile-form">
+          <div class="section-heading compact">
+            <div>
+              <span>Produtos do estoque</span>
+              <h2>Solicitar material para retirada</h2>
+            </div>
+            <span class="pill teal">Disponivel</span>
+          </div>
+          <label>
+            Buscar produto
+            <input class="product-search" type="search" placeholder="Fonte, camera, cabo..." />
+          </label>
+          <div class="product-grid" aria-label="Produtos disponiveis no estoque">
+            <button class="product-card active" data-product="Fonte 12V 2A" data-price="48,00">
+              <strong>Fonte 12V 2A</strong>
+              <span>8 em estoque · R$ 48,00</span>
+            </button>
+            <button class="product-card" data-product="Bateria 7Ah" data-price="96,00">
+              <strong>Bateria 7Ah</strong>
+              <span>10 em estoque · R$ 96,00</span>
+            </button>
+            <button class="product-card" data-product="Sensor magnetico" data-price="32,00">
+              <strong>Sensor magnetico</strong>
+              <span>42 em estoque · R$ 32,00</span>
+            </button>
+            <button class="product-card" data-product="Camera dome Full HD" data-price="189,00">
+              <strong>Camera dome Full HD</strong>
+              <span>14 em estoque · R$ 189,00</span>
+            </button>
+            <button class="product-card" data-product="Cabo UTP Cat6" data-price="420,00">
+              <strong>Cabo UTP Cat6</strong>
+              <span>5 caixas · R$ 420,00</span>
+            </button>
+            <button class="product-card" data-product="Controle remoto TX" data-price="58,00">
+              <strong>Controle remoto TX</strong>
+              <span>24 em estoque · R$ 58,00</span>
+            </button>
+          </div>
+          <label>
+            Quantidade
+            <input class="product-qty" type="number" value="1" min="1" />
+          </label>
+          <button class="primary-button wide add-product-button">Solicitar material</button>
+
+          <div class="client-products">
+            <div class="client-products-head">
+              <strong>Solicitacoes nesta OS</strong>
+              <span class="client-total">R$ 48,00</span>
+            </div>
+            <div class="client-product-list">
+              <div class="client-product-row">
+                <span>1x Fonte 12V 2A</span>
+                <strong>R$ 48,00</strong>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="mobile-checklist">
+          <div class="section-heading compact">
+            <div>
+              <span>Obrigatorio para finalizar</span>
+              <h2>Conclusao da OS</h2>
+            </div>
+            <span class="pill amber completion-status">Pendente</span>
+          </div>
+
+          <div class="photo-proof-grid" aria-label="Fotos obrigatorias do servico">
+            <button class="photo-proof captured" data-photo="1">
+              <span>Foto 1</span>
+              <strong>Antes</strong>
+            </button>
+            <button class="photo-proof captured" data-photo="2">
+              <span>Foto 2</span>
+              <strong>Durante</strong>
+            </button>
+            <button class="photo-proof" data-photo="3">
+              <span>Foto 3</span>
+              <strong>Depois</strong>
+            </button>
+          </div>
+
+          <button class="secondary-button wide capture-photo-button">Adicionar foto restante</button>
+
+          <button class="signature-box" type="button" aria-label="Coletar assinatura do cliente">
+            <span>Assinatura do cliente</span>
+            <strong class="signature-line">Toque para assinar</strong>
+          </button>
+
+          <button class="primary-button wide finish-os-button" disabled>Concluir OS</button>
+        </section>
+
+        <nav class="bottom-nav" aria-label="Menu do tecnico">
+          <button class="active">OS</button>
+          <button>Agenda</button>
+          <button>Estoque</button>
+          <button>Perfil</button>
+        </nav>
+      </main>
+    </div>
+    <script src="./app.js"></script>
+  </body>
+</html>

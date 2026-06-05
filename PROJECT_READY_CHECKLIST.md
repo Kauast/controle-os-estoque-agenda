@@ -1,0 +1,166 @@
+# O que falta para o projeto ficar pronto e usavel
+
+## 1. Backend real
+
+Criar uma API para conectar a interface ao banco PostgreSQL.
+
+Rotas essenciais:
+
+- `POST /login`
+- `POST /usuarios`
+- `GET /clientes`
+- `POST /clientes`
+- `GET /os`
+- `POST /os`
+- `PATCH /os/:id`
+- `POST /os/:id/fotos`
+- `POST /os/:id/assinatura`
+- `POST /os/:id/material`
+- `PATCH /material/:id/aprovar`
+- `PATCH /material/:id/negar`
+- `PATCH /material/:id/separar`
+- `PATCH /material/:id/retirar`
+- `GET /estoque`
+- `POST /estoque/entrada`
+- `GET /relatorios`
+- `GET /financeiro`
+
+## 2. Autenticacao e autorizacao
+
+Implementar:
+
+- login com senha criptografada;
+- sessao/JWT;
+- middleware por perfil;
+- protecao de rotas no frontend;
+- regra de tecnico ver somente OS atribuidas a ele;
+- regra de faturamento somente para admin.
+
+Documento base:
+
+```text
+server/AUTHORIZATION.md
+```
+
+## 3. Upload e armazenamento de arquivos
+
+Fotos e assinatura precisam ser salvas em storage.
+
+Opcoes:
+
+- pasta segura no servidor;
+- S3;
+- MinIO;
+- Supabase Storage;
+- Cloudflare R2.
+
+O banco ja esta pronto para salvar:
+
+- `file_url`;
+- `storage_key`;
+- `file_name`;
+- `mime_type`;
+- `file_size_bytes`.
+
+## 4. Frontend conectado ao backend
+
+O prototipo atual usa dados simulados.
+
+Precisa conectar:
+
+- dashboard admin;
+- dashboard estoque;
+- dashboard instrutor;
+- dashboard tecnico;
+- agenda das equipes;
+- OS;
+- estoque;
+- solicitacoes de material;
+- historico do cliente;
+- relatorios;
+- financeiro.
+
+## 5. Modulo de estoque completo
+
+Criar telas reais para:
+
+- cadastro de produtos;
+- entrada de estoque;
+- solicitacoes pendentes;
+- aprovar/negar;
+- separar;
+- confirmar retirada;
+- historico de movimentacoes;
+- alerta de estoque minimo.
+
+## 6. Modulo de OS completo
+
+Criar telas reais para:
+
+- lista de OS;
+- criar OS;
+- editar OS;
+- detalhes da OS;
+- atribuir tecnico/equipe;
+- alterar status;
+- anexar fotos;
+- coletar assinatura;
+- solicitar material;
+- cancelar OS.
+
+## 7. Financeiro administrativo
+
+Apenas admin deve acessar.
+
+Implementar:
+
+- total faturado por periodo;
+- OS pagas;
+- OS pendentes;
+- faturamento por tecnico;
+- custo das pecas usadas;
+- lucro estimado;
+- relatorio mensal;
+- exportacao CSV/PDF.
+
+## 8. Auditoria
+
+Registrar em `audit_logs`:
+
+- criacao/edicao/cancelamento de OS;
+- alteracao de status;
+- solicitacao de material;
+- aprovacao/negacao;
+- separacao;
+- retirada;
+- entrada/ajuste de estoque;
+- alteracoes de faturamento;
+- upload de fotos;
+- assinatura do cliente.
+
+## 9. Hospedagem
+
+Necessario definir:
+
+- servidor/VPS;
+- dominio;
+- HTTPS;
+- banco PostgreSQL;
+- storage de imagens;
+- backups automaticos;
+- monitoramento.
+
+## 10. Testes obrigatorios
+
+Testar:
+
+- tecnico nao acessa OS de outro tecnico;
+- tecnico nao altera estoque;
+- instrutor nao altera estoque;
+- admin ve faturamento;
+- estoque nao ve faturamento sem permissao;
+- OS nao finaliza sem 3 fotos;
+- OS nao finaliza sem assinatura;
+- estoque reserva ao aprovar material;
+- estoque baixa somente ao confirmar retirada;
+- historico do cliente mostra fotos e assinatura.
