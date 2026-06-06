@@ -602,29 +602,47 @@
             </div>
 
             <div class="technician-routing">
-              <div class="technician-list" aria-label="Tecnicos">
-                <button class="technician-chip active" data-name="Bruno" data-status="Em atendimento" data-team="Equipe 1">Bruno</button>
-                <button class="technician-chip" data-name="Ana" data-status="A caminho" data-team="Equipe 2">Ana</button>
-                <button class="technician-chip" data-name="Marcos" data-status="Checklist final" data-team="Equipe 3">Marcos</button>
-                <button class="technician-chip" data-name="Diego" data-status="Disponivel" data-team="Equipe 4">Diego</button>
+              <div class="technician-directory">
+                <div class="technician-directory-head">
+                  <div>
+                    <span>Tecnicos cadastrados</span>
+                    <strong class="technician-count">4 ativos</strong>
+                  </div>
+                  <button class="ghost-button new-tech-button">Novo</button>
+                </div>
+                <div class="technician-list" aria-label="Tecnicos cadastrados"></div>
               </div>
 
-              <div class="technician-detail">
-                <div>
-                  <span>Tecnico selecionado</span>
-                  <strong class="selected-tech-name">Bruno</strong>
-                </div>
-                <div>
-                  <span>Status</span>
-                  <strong class="selected-tech-status">Em atendimento</strong>
-                </div>
-                <div>
-                  <span>Equipe atual</span>
-                  <strong class="selected-tech-team">Equipe 1</strong>
+              <form class="technician-form">
+                <div class="technician-form-head">
+                  <div>
+                    <span>Edicao rapida</span>
+                    <strong class="technician-form-title">Bruno</strong>
+                  </div>
+                  <span class="pill teal technician-form-state">Selecionado</span>
                 </div>
                 <label>
-                  Redirecionar para
-                  <select class="team-redirect-select">
+                  Nome do tecnico
+                  <input class="tech-name-input" name="name" type="text" autocomplete="off" required />
+                </label>
+                <label>
+                  Telefone
+                  <input class="tech-phone-input" name="phone" type="tel" autocomplete="off" />
+                </label>
+                <label>
+                  Status
+                  <select class="tech-status-select" name="status">
+                    <option>Disponivel</option>
+                    <option>A caminho</option>
+                    <option>Em atendimento</option>
+                    <option>Checklist final</option>
+                    <option>Redirecionado</option>
+                    <option>Offline</option>
+                  </select>
+                </label>
+                <label>
+                  Equipe
+                  <select class="team-redirect-select" name="team">
                     <option>Equipe 1</option>
                     <option>Equipe 2</option>
                     <option>Equipe 3</option>
@@ -632,8 +650,11 @@
                     <option>Equipe 5</option>
                   </select>
                 </label>
-                <button class="primary-button redirect-tech-button">Redirecionar tecnico</button>
-              </div>
+                <div class="technician-form-actions">
+                  <button class="primary-button save-tech-button" type="submit">Salvar tecnico</button>
+                  <button class="danger-button delete-tech-button" type="button">Excluir</button>
+                </div>
+              </form>
             </div>
 
             <div class="selected-team-detail">
@@ -771,10 +792,26 @@
 
           <button class="secondary-button wide capture-photo-button">Adicionar foto restante</button>
 
-          <button class="signature-box" type="button" aria-label="Coletar assinatura do cliente">
-            <span>Assinatura do cliente</span>
-            <strong class="signature-line">Toque para assinar</strong>
-          </button>
+          <div class="signature-box" aria-label="Coletar assinatura do cliente">
+            <div class="signature-box-head">
+              <span>Assinatura do cliente</span>
+              <strong class="signature-line">Pendente</strong>
+            </div>
+            <canvas class="signature-canvas" width="620" height="220" aria-label="Area para assinatura"></canvas>
+            <div class="signature-actions">
+              <button class="secondary-button clear-signature-button" type="button">Limpar</button>
+              <button class="primary-button confirm-signature-button" type="button" disabled>Confirmar assinatura</button>
+            </div>
+          </div>
+
+          <div class="tracker-chip-box">
+            <label>
+              ID CHIP
+              <input class="tracker-chip-input" type="text" inputmode="text" autocomplete="off" placeholder="8955 0400 1234 5678 9012" />
+            </label>
+            <button class="secondary-button verify-chip-button wide" type="button">Contabilizar ID CHIP</button>
+            <small class="tracker-chip-status">ID CHIP pendente</small>
+          </div>
 
           <button class="primary-button wide finish-os-button" disabled>Concluir OS</button>
         </section>

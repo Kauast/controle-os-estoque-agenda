@@ -6,8 +6,10 @@ Sistema para controle de ordens de servico, estoque, agenda mensal por equipe, s
 
 - Interface desktop administrativa.
 - Interface mobile para tecnico de campo.
+- API Node/Express inicial com login, JWT e permissoes por perfil.
 - Agenda por 5 equipes com arrastar OS.
 - Fluxo de conclusao da OS com 3 fotos e assinatura.
+- Verificacao obrigatoria do ID do chip do rastreador antes de finalizar OS.
 - Historico do cliente com fotos e assinatura por OS.
 - Painel financeiro somente para administrador.
 - Relatorios por equipe e por instrutor de OS.
@@ -27,6 +29,11 @@ database/
   02_seed.sql
   admin_queries.sql
 server/
+  package.json
+  src/
+    index.js
+    auth.js
+    db.js
   docker-compose.yml
   .env.example
   DEPLOY.md
@@ -37,13 +44,37 @@ server/
 
 Abra `index.html` no navegador.
 
-## Como subir o banco
+## Como subir banco e API
 
 Veja o passo a passo em:
 
 ```text
 server/DEPLOY.md
 ```
+
+Resumo local:
+
+```bash
+cd server
+cp .env.example .env
+docker compose up -d
+npm install
+npm run dev
+```
+
+A API sobe por padrao em:
+
+```text
+http://localhost:3001
+```
+
+Observacao: os usuarios de exemplo do seed ainda usam `password_hash` placeholder. Gere um hash real com:
+
+```bash
+npm run password:hash -- sua-senha
+```
+
+Depois atualize o `password_hash` do usuario no banco.
 
 ## Perfis de usuario
 
@@ -63,6 +94,14 @@ O fluxo correto e:
 3. Ao aprovar, o sistema reserva a quantidade.
 4. Ao confirmar retirada, o sistema baixa do estoque total e remove da reserva.
 5. Toda movimentacao fica registrada no historico.
+
+## Regra critica de fechamento da OS
+
+Uma OS so pode ser finalizada quando tiver:
+
+1. pelo menos 3 fotos;
+2. assinatura do cliente;
+3. ID do chip do rastreador contabilizado.
 
 ## O que falta para producao
 

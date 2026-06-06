@@ -2,9 +2,9 @@
 
 ## 1. Backend real
 
-Criar uma API para conectar a interface ao banco PostgreSQL.
+Base inicial criada em `server/src`.
 
-Rotas essenciais:
+Rotas ja iniciadas:
 
 - `POST /login`
 - `POST /usuarios`
@@ -13,8 +13,6 @@ Rotas essenciais:
 - `GET /os`
 - `POST /os`
 - `PATCH /os/:id`
-- `POST /os/:id/fotos`
-- `POST /os/:id/assinatura`
 - `POST /os/:id/material`
 - `PATCH /material/:id/aprovar`
 - `PATCH /material/:id/negar`
@@ -22,16 +20,24 @@ Rotas essenciais:
 - `PATCH /material/:id/retirar`
 - `GET /estoque`
 - `POST /estoque/entrada`
-- `GET /relatorios`
+- `GET /relatorios/operacional`
 - `GET /financeiro`
+
+Rotas ainda pendentes:
+
+- `POST /os/:id/fotos`
+- `POST /os/:id/assinatura`
+- cadastro/edicao completa de produtos;
+- historico do cliente por API;
+- exportacoes CSV/PDF.
 
 ## 2. Autenticacao e autorizacao
 
 Implementar:
 
-- login com senha criptografada;
-- sessao/JWT;
-- middleware por perfil;
+- login com senha criptografada; iniciado
+- sessao/JWT; iniciado
+- middleware por perfil; iniciado
 - protecao de rotas no frontend;
 - regra de tecnico ver somente OS atribuidas a ele;
 - regra de faturamento somente para admin.
@@ -161,6 +167,7 @@ Testar:
 - estoque nao ve faturamento sem permissao;
 - OS nao finaliza sem 3 fotos;
 - OS nao finaliza sem assinatura;
+- OS nao finaliza sem ID do chip do rastreador contabilizado;
 - estoque reserva ao aprovar material;
 - estoque baixa somente ao confirmar retirada;
 - historico do cliente mostra fotos e assinatura.

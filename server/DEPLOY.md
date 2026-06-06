@@ -1,6 +1,6 @@
-# Deploy do banco Controle OS
+# Deploy do Controle OS
 
-Este pacote sobe um banco PostgreSQL com as tabelas reais do projeto:
+Este pacote sobe um banco PostgreSQL com as tabelas reais do projeto e uma API Node/Express inicial.
 
 - usuarios e permissoes;
 - perfis `admin`, `estoque`, `instrutor_os` e `tecnico`;
@@ -13,6 +13,7 @@ Este pacote sobe um banco PostgreSQL com as tabelas reais do projeto:
 - materiais vendidos por OS;
 - fotos obrigatorias;
 - assinatura do cliente;
+- ID do chip do rastreador obrigatorio para finalizar OS;
 - historico do cliente com fotos e assinatura de cada OS;
 - financeiro administrativo.
 - relatorios por equipe e por instrutor de OS.
@@ -75,7 +76,53 @@ SELECT * FROM monthly_financial_summary;
 SELECT SUM(stock_value) FROM product_stock;
 ```
 
-## 6. Atualizar banco em producao
+## 6. Subir a API
+
+No servidor ou ambiente local com Node.js:
+
+```bash
+cd /opt/controle-os/server
+npm install
+npm run start
+```
+
+Em desenvolvimento:
+
+```bash
+npm run dev
+```
+
+Teste a API:
+
+```bash
+curl http://localhost:3001/health
+```
+
+## 7. Configurar senha real do admin
+
+Os usuarios do seed usam `password_hash` temporario. Gere um hash bcrypt:
+
+```bash
+npm run password:hash -- sua-senha-forte
+```
+
+Atualize o usuario admin no banco:
+
+```sql
+UPDATE users
+SET password_hash = 'HASH_GERADO_AQUI'
+WHERE email = 'admin@empresa.com';
+```
+
+Depois teste login:
+
+```bash
+curl -X POST http://localhost:3001/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@empresa.com","password":"sua-senha-forte"}'
+```
+
+## 8. Atualizar banco em producao
 
 Depois que o banco tiver dados reais, nao apague o volume Docker. Para novas mudancas, use arquivos de migracao versionados.
 
@@ -85,7 +132,7 @@ Volume usado:
 controle_os_postgres_data
 ```
 
-## 7. Armazenamento de fotos e assinaturas
+## 9. Armazenamento de fotos e assinaturas
 
 O banco guarda os links e metadados dos arquivos nas tabelas:
 

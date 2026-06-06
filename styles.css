@@ -214,6 +214,21 @@ h2 {
   border: 1px solid var(--line);
 }
 
+.danger-button {
+  min-height: 40px;
+  border-radius: 8px;
+  padding: 0 16px;
+  background: var(--red-soft);
+  color: var(--red);
+  border: 1px solid rgba(183, 53, 53, 0.2);
+  white-space: nowrap;
+}
+
+.danger-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
 .icon-button {
   width: 42px;
   padding: 0;
@@ -879,75 +894,146 @@ th {
 .technician-routing {
   margin-top: 14px;
   display: grid;
-  grid-template-columns: minmax(220px, 0.7fr) minmax(0, 1fr);
+  grid-template-columns: minmax(260px, 0.85fr) minmax(360px, 1fr);
   gap: 14px;
+  align-items: start;
 }
 
-.technician-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-content: flex-start;
-}
-
-.technician-chip {
-  min-height: 38px;
-  padding: 0 13px;
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  background: #fff;
-  color: var(--ink);
-}
-
-.technician-chip.active,
-.technician-chip:hover {
-  background: var(--dark);
-  color: #fff;
-}
-
-.technician-detail {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-  align-items: end;
-  padding: 12px;
+.technician-directory,
+.technician-form {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--panel-soft);
 }
 
-.technician-detail span,
+.technician-directory {
+  padding: 12px;
+}
+
+.technician-directory-head,
+.technician-form-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.technician-directory-head span,
+.technician-form-head span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.technician-directory-head strong,
+.technician-form-head strong {
+  display: block;
+  margin-top: 4px;
+}
+
+.technician-directory-head .ghost-button {
+  min-height: 36px;
+  padding: 0 12px;
+}
+
+.technician-list {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.technician-row {
+  min-height: 64px;
+  width: 100%;
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(110px, 0.7fr);
+  gap: 10px;
+  align-items: center;
+  text-align: left;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+}
+
+.technician-row.active,
+.technician-row:hover {
+  border-color: var(--dark);
+  box-shadow: 0 10px 22px rgba(15, 17, 20, 0.08);
+}
+
+.technician-row span,
+.technician-row strong,
+.technician-row small {
+  display: block;
+  min-width: 0;
+}
+
+.technician-row strong,
+.technician-row small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.technician-row small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.technician-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 14px;
+}
+
 .selected-team-detail span {
   display: block;
   color: var(--muted);
   font-size: 12px;
 }
 
-.technician-detail strong,
 .selected-team-detail strong {
   display: block;
   margin-top: 4px;
   overflow-wrap: anywhere;
 }
 
-.technician-detail label {
+.technician-form-head {
+  grid-column: 1 / -1;
+}
+
+.technician-form label {
   display: grid;
   gap: 6px;
   color: var(--muted);
   font-size: 12px;
 }
 
-.technician-detail select {
+.technician-form input,
+.technician-form select {
   min-height: 40px;
   width: 100%;
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 0 10px;
   background: #fff;
+  color: var(--ink);
 }
 
-.redirect-tech-button {
+.technician-form-actions {
   grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.technician-form-actions .primary-button,
+.technician-form-actions .danger-button {
   width: 100%;
 }
 
@@ -1222,11 +1308,10 @@ th {
 
   .signature-box {
     display: grid;
-    gap: 12px;
-    min-height: 96px;
+    gap: 10px;
     width: 100%;
     padding: 14px;
-    border: 1px dashed #bfc7d1;
+    border: 1px solid var(--line);
     border-radius: 8px;
     background: #fff;
     color: var(--muted);
@@ -1234,18 +1319,105 @@ th {
   }
 
   .signature-box.signed {
-    border-style: solid;
     border-color: var(--teal);
     background: var(--teal-soft);
   }
 
+  .signature-box-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .signature-box-head span {
+    font-size: 13px;
+    color: var(--muted);
+  }
+
   .signature-line {
-    min-height: 40px;
     color: var(--ink);
-    font-family: "Segoe Script", "Brush Script MT", cursive;
-    font-size: 24px;
-    font-weight: 600;
-    border-bottom: 1px solid var(--line);
+    font-size: 13px;
+    font-weight: 800;
+    text-align: right;
+  }
+
+  .signature-canvas {
+    width: 100%;
+    height: 132px;
+    display: block;
+    border: 1px dashed #bfc7d1;
+    border-radius: 8px;
+    background:
+      linear-gradient(to bottom, transparent calc(100% - 28px), rgba(223, 227, 232, 0.9) calc(100% - 27px), transparent calc(100% - 26px)),
+      #fff;
+    touch-action: none;
+  }
+
+  .signature-actions {
+    display: grid;
+    grid-template-columns: minmax(86px, 0.45fr) minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .confirm-signature-button:disabled {
+    background: #b7bec7;
+    color: #f8fafc;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  .tracker-chip-box {
+    display: grid;
+    gap: 10px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+
+  .tracker-chip-box label {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 7px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .tracker-chip-input {
+    min-height: 44px;
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 0 12px;
+    background: #fff;
+    color: var(--ink);
+    letter-spacing: 0;
+  }
+
+  .tracker-chip-input.verified {
+    border-color: var(--teal);
+    background: var(--teal-soft);
+  }
+
+  .tracker-chip-status {
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--amber-soft);
+    color: var(--amber);
+    font-weight: 700;
+  }
+
+  .tracker-chip-status.verified {
+    border-color: rgba(18, 125, 117, 0.25);
+    background: var(--teal-soft);
+    color: var(--teal);
+  }
+
+  .tracker-chip-status.error {
+    border-color: rgba(183, 53, 53, 0.24);
+    background: var(--red-soft);
+    color: var(--red);
   }
 
   .finish-os-button:disabled {

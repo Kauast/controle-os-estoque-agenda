@@ -96,6 +96,8 @@ CREATE TABLE service_orders (
   service_value numeric(12,2) NOT NULL DEFAULT 0 CHECK (service_value >= 0),
   payment_method text,
   payment_status text NOT NULL DEFAULT 'pendente' CHECK (payment_status IN ('pendente', 'parcial', 'pago', 'cancelado')),
+  tracker_chip_id text,
+  tracker_chip_verified_at timestamptz,
   notes text,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
@@ -314,11 +316,12 @@ BEGIN
       WHERE service_order_id = NEW.id
     ) INTO has_signature;
 
-    IF photo_count < 3 OR NOT has_signature THEN
-      RAISE EXCEPTION 'OS cannot be completed without at least 3 photos and client signature';
+    IF photo_count < 3 OR NOT has_signature OR NEW.tracker_chip_id IS NULL OR btrim(NEW.tracker_chip_id) = '' THEN
+      RAISE EXCEPTION 'OS cannot be completed without at least 3 photos, client signature and tracker chip id';
     END IF;
 
     NEW.completed_at = COALESCE(NEW.completed_at, now());
+    NEW.tracker_chip_verified_at = COALESCE(NEW.tracker_chip_verified_at, now());
   END IF;
 
   NEW.updated_at = now();
