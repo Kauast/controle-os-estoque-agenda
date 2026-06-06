@@ -14,7 +14,7 @@ CREATE TABLE users (
   phone text,
   email text NOT NULL UNIQUE,
   password_hash text NOT NULL,
-  role text NOT NULL CHECK (role IN ('admin', 'estoque', 'instrutor_os', 'tecnico')),
+  role text NOT NULL CHECK (role IN ('admin', 'estoque', 'instrutor_os', 'tecnico', 'vendedor')),
   active boolean NOT NULL DEFAULT true,
   can_view_financial boolean NOT NULL DEFAULT false,
   created_at timestamptz NOT NULL DEFAULT now()
@@ -65,6 +65,8 @@ CREATE TABLE products (
   name text NOT NULL,
   sku text,
   category text,
+  location text,
+  qr_code_value text,
   quantity_total numeric(12,2) NOT NULL DEFAULT 0 CHECK (quantity_total >= 0),
   quantity_reserved numeric(12,2) NOT NULL DEFAULT 0 CHECK (quantity_reserved >= 0),
   quantity_available numeric(12,2) GENERATED ALWAYS AS (quantity_total - quantity_reserved) STORED,
@@ -75,6 +77,7 @@ CREATE TABLE products (
   active boolean NOT NULL DEFAULT true,
   created_at timestamptz NOT NULL DEFAULT now(),
   UNIQUE (company_id, sku),
+  UNIQUE (company_id, qr_code_value),
   CHECK (quantity_reserved <= quantity_total)
 );
 
@@ -125,6 +128,10 @@ CREATE TABLE stock_movements (
   product_id uuid NOT NULL REFERENCES products(id) ON DELETE RESTRICT,
   movement_type text NOT NULL CHECK (movement_type IN ('entrada', 'saida', 'reserva', 'cancelamento_reserva', 'ajuste')),
   quantity numeric(12,2) NOT NULL CHECK (quantity > 0),
+  stock_before numeric(12,2),
+  stock_after numeric(12,2),
+  reason text,
+  supplier text,
   user_id uuid REFERENCES users(id) ON DELETE SET NULL,
   service_order_id uuid REFERENCES service_orders(id) ON DELETE SET NULL,
   material_request_id uuid REFERENCES material_requests(id) ON DELETE SET NULL,
@@ -341,6 +348,8 @@ SELECT
   sku,
   name,
   category,
+  location,
+  qr_code_value,
   quantity_total,
   quantity_reserved,
   quantity_available,

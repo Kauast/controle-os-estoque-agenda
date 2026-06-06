@@ -6,6 +6,7 @@ Use estes perfis no backend e no frontend:
 - `estoque`
 - `instrutor_os`
 - `tecnico`
+- `vendedor`
 
 ## Regras gerais
 
@@ -13,6 +14,7 @@ Use estes perfis no backend e no frontend:
 - `estoque` pode gerenciar produtos, entradas, baixas, reservas, separacao e retirada de material.
 - `instrutor_os` pode criar e editar OS, vincular cliente/tecnico/equipe e solicitar material.
 - `tecnico` so pode acessar OS atribuidas a ele.
+- `vendedor` pode consultar estoque e registrar saidas por venda.
 - `tecnico` e `instrutor_os` nunca alteram estoque diretamente.
 - Baixa de estoque so acontece quando `admin` ou `estoque` confirma retirada de material.
 - Faturamento so pode ser visto por `admin`, exceto quando `users.can_view_financial = true`.
@@ -36,14 +38,16 @@ Use estes perfis no backend e no frontend:
 | Confirmar retirada | sim | sim | nao | nao |
 | Ver relatorios | sim | estoque operacional | operacional sem faturamento | somente propria produtividade se liberado |
 
+Perfil `vendedor`: consulta estoque e registra saida com motivo `venda`, sem acesso a faturamento administrativo.
+
 ## Protecao de rotas sugerida
 
 ```text
 GET /admin/financeiro -> admin ou can_view_financial
-GET /estoque -> admin, estoque
+GET /estoque -> admin, estoque, instrutor_os, vendedor
 POST /produtos -> admin, estoque
 POST /estoque/entrada -> admin, estoque
-POST /estoque/baixa -> admin, estoque
+POST /estoque/saida -> admin, estoque, vendedor
 POST /os -> admin, estoque, instrutor_os
 PATCH /os/:id -> admin, instrutor_os, tecnico da OS com campos limitados
 DELETE /os/:id -> admin

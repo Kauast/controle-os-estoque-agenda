@@ -10,6 +10,7 @@ Sistema para controle de ordens de servico, estoque, agenda mensal por equipe, s
 - Agenda por 5 equipes com arrastar OS.
 - Fluxo de conclusao da OS com 3 fotos e assinatura.
 - Verificacao obrigatoria do ID do chip do rastreador antes de finalizar OS.
+- Sistema de estoque com cadastro de produtos, QR Code, entrada, saida, historico e alertas.
 - Historico do cliente com fotos e assinatura por OS.
 - Painel financeiro somente para administrador.
 - Relatorios por equipe e por instrutor de OS.
@@ -82,6 +83,7 @@ Depois atualize o `password_hash` do usuario no banco.
 - `estoque`: produtos, entradas, baixas, reservas, separacao e retirada de material.
 - `instrutor_os`: cria/edita OS, vincula cliente/tecnico e solicita material.
 - `tecnico`: ve somente suas OS, atualiza status, envia fotos, assinatura e solicita material.
+- `vendedor`: consulta estoque e registra saida por venda.
 
 ## Regra critica do estoque
 
@@ -94,6 +96,14 @@ O fluxo correto e:
 3. Ao aprovar, o sistema reserva a quantidade.
 4. Ao confirmar retirada, o sistema baixa do estoque total e remove da reserva.
 5. Toda movimentacao fica registrada no historico.
+
+Entradas e saidas manuais do estoque devem registrar:
+
+1. produto por SKU ou QR Code;
+2. quantidade;
+3. usuario responsavel;
+4. motivo ou fornecedor;
+5. estoque antes e depois.
 
 ## Regra critica de fechamento da OS
 

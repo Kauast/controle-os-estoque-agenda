@@ -9,7 +9,8 @@ VALUES
   ('10000000-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000001', 'Bruno', '(11) 90000-0004', 'bruno@empresa.com', 'trocar-por-hash-seguro', 'tecnico', false),
   ('10000000-0000-0000-0000-000000000005', '00000000-0000-0000-0000-000000000001', 'Ana', '(11) 90000-0005', 'ana@empresa.com', 'trocar-por-hash-seguro', 'tecnico', false),
   ('10000000-0000-0000-0000-000000000006', '00000000-0000-0000-0000-000000000001', 'Marcos', '(11) 90000-0006', 'marcos@empresa.com', 'trocar-por-hash-seguro', 'tecnico', false),
-  ('10000000-0000-0000-0000-000000000007', '00000000-0000-0000-0000-000000000001', 'Diego', '(11) 90000-0007', 'diego@empresa.com', 'trocar-por-hash-seguro', 'tecnico', false);
+  ('10000000-0000-0000-0000-000000000007', '00000000-0000-0000-0000-000000000001', 'Diego', '(11) 90000-0007', 'diego@empresa.com', 'trocar-por-hash-seguro', 'tecnico', false),
+  ('10000000-0000-0000-0000-000000000008', '00000000-0000-0000-0000-000000000001', 'Vendedor', '(11) 90000-0008', 'vendedor@empresa.com', 'trocar-por-hash-seguro', 'vendedor', false);
 
 INSERT INTO clients (id, company_id, name, phone, email, address, document_number, notes)
 VALUES
@@ -40,14 +41,14 @@ VALUES
   ('20000000-0000-0000-0000-000000000003', '70000000-0000-0000-0000-000000000003'),
   ('20000000-0000-0000-0000-000000000004', '70000000-0000-0000-0000-000000000004');
 
-INSERT INTO products (id, company_id, name, sku, category, quantity_total, quantity_reserved, min_quantity, purchase_cost, sale_price, supplier, active)
+INSERT INTO products (id, company_id, name, sku, category, location, qr_code_value, quantity_total, quantity_reserved, min_quantity, purchase_cost, sale_price, supplier, active)
 VALUES
-  ('40000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001', 'Fonte 12V 2A', 'FON-12V-2A', 'Eletrica', 28, 0, 20, 29.00, 48.00, 'Fornecedor A', true),
-  ('40000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000001', 'Bateria 7Ah', 'BAT-7AH', 'Energia', 20, 0, 12, 62.00, 96.00, 'Fornecedor B', true),
-  ('40000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000001', 'Cabo UTP Cat6', 'CAB-CAT6', 'Rede', 10, 0, 6, 270.00, 420.00, 'Fornecedor C', true),
-  ('40000000-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000001', 'Sensor magnetico', 'SEN-MAG', 'Alarme', 60, 0, 30, 18.00, 32.00, 'Fornecedor A', true),
-  ('40000000-0000-0000-0000-000000000005', '00000000-0000-0000-0000-000000000001', 'Camera dome Full HD', 'CAM-DOME-FHD', 'CFTV', 20, 0, 8, 128.00, 189.00, 'Fornecedor D', true),
-  ('40000000-0000-0000-0000-000000000006', '00000000-0000-0000-0000-000000000001', 'Controle remoto TX', 'CTRL-TX', 'Automacao', 30, 0, 15, 34.00, 58.00, 'Fornecedor E', true);
+  ('40000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001', 'Fonte 12V 2A', 'FON-12V-2A', 'Eletrica', 'Prateleira A1', 'PROD:FON-12V-2A', 28, 0, 20, 29.00, 48.00, 'Fornecedor A', true),
+  ('40000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000001', 'Bateria 7Ah', 'BAT-7AH', 'Energia', 'Prateleira A2', 'PROD:BAT-7AH', 20, 0, 12, 62.00, 96.00, 'Fornecedor B', true),
+  ('40000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000001', 'Cabo UTP Cat6', 'CAB-CAT6', 'Rede', 'Corredor B1', 'PROD:CAB-CAT6', 10, 0, 6, 270.00, 420.00, 'Fornecedor C', true),
+  ('40000000-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000001', 'Sensor magnetico', 'SEN-MAG', 'Alarme', 'Gaveta C3', 'PROD:SEN-MAG', 60, 0, 30, 18.00, 32.00, 'Fornecedor A', true),
+  ('40000000-0000-0000-0000-000000000005', '00000000-0000-0000-0000-000000000001', 'Camera dome Full HD', 'CAM-DOME-FHD', 'CFTV', 'Armario D1', 'PROD:CAM-DOME-FHD', 20, 0, 8, 128.00, 189.00, 'Fornecedor D', true),
+  ('40000000-0000-0000-0000-000000000006', '00000000-0000-0000-0000-000000000001', 'Controle remoto TX', 'CTRL-TX', 'Automacao', 'Gaveta C1', 'PROD:CTRL-TX', 30, 0, 15, 34.00, 58.00, 'Fornecedor E', true);
 
 INSERT INTO service_orders (id, company_id, os_number, client_id, technician_id, team_id, created_by, service_address, description, status, priority, opened_at, due_at, service_value, payment_method, payment_status, tracker_chip_id, notes)
 VALUES
@@ -61,10 +62,10 @@ VALUES
   ('60000000-0000-0000-0000-000000000001', '50000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000004', '40000000-0000-0000-0000-000000000001', 1, 'Fonte queimada no portao.', 'retirada', '10000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000002', '2026-06-05 09:45:00-03', '2026-06-05 09:55:00-03', '2026-06-05 10:05:00-03'),
   ('60000000-0000-0000-0000-000000000002', '50000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000003', '40000000-0000-0000-0000-000000000002', 1, 'Troca preventiva da bateria.', 'pendente', NULL, NULL, NULL, '2026-06-05 13:40:00-03', NULL, NULL);
 
-INSERT INTO stock_movements (product_id, movement_type, quantity, user_id, service_order_id, material_request_id, notes)
+INSERT INTO stock_movements (product_id, movement_type, quantity, stock_before, stock_after, reason, supplier, user_id, service_order_id, material_request_id, notes)
 VALUES
-  ('40000000-0000-0000-0000-000000000001', 'saida', 1, '10000000-0000-0000-0000-000000000002', '50000000-0000-0000-0000-000000000001', '60000000-0000-0000-0000-000000000001', 'Retirada confirmada para OS-1048'),
-  ('40000000-0000-0000-0000-000000000002', 'reserva', 1, '10000000-0000-0000-0000-000000000002', '50000000-0000-0000-0000-000000000003', '60000000-0000-0000-0000-000000000002', 'Exemplo de reserva pendente de separacao');
+  ('40000000-0000-0000-0000-000000000001', 'saida', 1, 28, 27, 'OS', NULL, '10000000-0000-0000-0000-000000000002', '50000000-0000-0000-0000-000000000001', '60000000-0000-0000-0000-000000000001', 'Retirada confirmada para OS-1048'),
+  ('40000000-0000-0000-0000-000000000002', 'reserva', 1, 20, 20, 'OS', NULL, '10000000-0000-0000-0000-000000000002', '50000000-0000-0000-0000-000000000003', '60000000-0000-0000-0000-000000000002', 'Exemplo de reserva pendente de separacao');
 
 UPDATE products
 SET quantity_total = quantity_total - 1

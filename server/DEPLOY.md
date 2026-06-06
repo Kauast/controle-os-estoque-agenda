@@ -10,6 +10,8 @@ Este pacote sobe um banco PostgreSQL com as tabelas reais do projeto e uma API N
 - redirecionamento de tecnicos entre equipes;
 - OS e agenda por equipe;
 - produtos e estoque;
+- QR Code unico por produto;
+- entradas, saidas e historico de estoque com saldo antes/depois;
 - materiais vendidos por OS;
 - fotos obrigatorias;
 - assinatura do cliente;

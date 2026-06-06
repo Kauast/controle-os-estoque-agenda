@@ -8,6 +8,8 @@ Rotas ja iniciadas:
 
 - `POST /login`
 - `POST /usuarios`
+- `GET /produtos`
+- `POST /produtos`
 - `GET /clientes`
 - `POST /clientes`
 - `GET /os`
@@ -19,7 +21,10 @@ Rotas ja iniciadas:
 - `PATCH /material/:id/separar`
 - `PATCH /material/:id/retirar`
 - `GET /estoque`
+- `GET /estoque/baixos`
+- `GET /estoque/historico`
 - `POST /estoque/entrada`
+- `POST /estoque/saida`
 - `GET /relatorios/operacional`
 - `GET /financeiro`
 
@@ -88,16 +93,26 @@ Precisa conectar:
 
 ## 5. Modulo de estoque completo
 
-Criar telas reais para:
+Base visual criada para:
 
 - cadastro de produtos;
 - entrada de estoque;
+- saida de estoque;
+- scanner/consulta por SKU ou QR Code;
+- etiqueta QR Code para impressao;
+- historico com estoque antes e depois;
+- alerta de estoque minimo.
+
+Ainda pendente para producao:
+
+- leitura real da camera do celular;
+- QR Code com biblioteca de codificacao real;
+- persistencia conectada ao backend;
+- permissao visual por perfil no frontend;
 - solicitacoes pendentes;
 - aprovar/negar;
 - separar;
 - confirmar retirada;
-- historico de movimentacoes;
-- alerta de estoque minimo.
 
 ## 6. Modulo de OS completo
 

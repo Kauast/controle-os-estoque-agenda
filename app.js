@@ -98,6 +98,330 @@ if (addProductButton) {
 
 renderClientProducts();
 
+const inventoryProducts = [
+  { id: 1, name: "Fonte 12V 2A", sku: "FON-12V-2A", category: "Eletrica", location: "Prateleira A1", qty: 8, min: 20, cost: 29, price: 48, qr: "PROD:FON-12V-2A" },
+  { id: 2, name: "Bateria 7Ah", sku: "BAT-7AH", category: "Energia", location: "Prateleira A2", qty: 10, min: 12, cost: 62, price: 96, qr: "PROD:BAT-7AH" },
+  { id: 3, name: "Cabo UTP Cat6", sku: "CAB-CAT6", category: "Rede", location: "Corredor B1", qty: 5, min: 6, cost: 270, price: 420, qr: "PROD:CAB-CAT6" },
+  { id: 4, name: "Sensor magnetico", sku: "SEN-MAG", category: "Alarme", location: "Gaveta C3", qty: 42, min: 30, cost: 18, price: 32, qr: "PROD:SEN-MAG" },
+  { id: 5, name: "Camera dome Full HD", sku: "CAM-DOME-FHD", category: "CFTV", location: "Armario D1", qty: 14, min: 8, cost: 128, price: 189, qr: "PROD:CAM-DOME-FHD" },
+  { id: 6, name: "Controle remoto TX", sku: "CTRL-TX", category: "Automacao", location: "Gaveta C1", qty: 24, min: 15, cost: 34, price: 58, qr: "PROD:CTRL-TX" }
+];
+
+const stockMovements = [
+  { product: "Fonte 12V 2A", type: "saida", qty: 1, user: "Estoque", date: "Hoje 10:05", reason: "OS", before: 9, after: 8 },
+  { product: "Bateria 7Ah", type: "entrada", qty: 4, user: "Estoque", date: "Hoje 08:20", reason: "Fornecedor B", before: 6, after: 10 }
+];
+
+let selectedInventoryProductId = 1;
+
+const inventoryProductList = document.querySelector(".inventory-product-list");
+const lowStockList = document.querySelector(".low-stock-list");
+const stockHistoryList = document.querySelector(".stock-history-list");
+const stockLowCount = document.querySelector(".stock-low-count");
+const stockTotalProducts = document.querySelector(".stock-total-products");
+const stockAlertProducts = document.querySelector(".stock-alert-products");
+const stockLastMovement = document.querySelector(".stock-last-movement");
+const selectedStockName = document.querySelector(".selected-stock-name");
+const selectedStockMeta = document.querySelector(".selected-stock-meta");
+const qrLabel = document.querySelector(".qr-label");
+const stockScanInput = document.querySelector(".stock-scan-input");
+const scanProductButton = document.querySelector(".scan-product-button");
+const startQrCameraButton = document.querySelector(".start-qr-camera-button");
+const qrScannerVideo = document.querySelector(".qr-scanner-video");
+const qrScannerStatus = document.querySelector(".qr-scanner-status");
+const inventoryProductForm = document.querySelector(".inventory-product-form");
+const stockEntryForm = document.querySelector(".stock-entry-form");
+const stockExitForm = document.querySelector(".stock-exit-form");
+const printQrButton = document.querySelector(".print-qr-button");
+
+function getStockStatus(product) {
+  if (product.qty <= product.min * 0.5) return { label: "Critico", className: "critical", pill: "red" };
+  if (product.qty <= product.min) return { label: "Baixo", className: "low", pill: "amber" };
+  return { label: "Ok", className: "ok", pill: "teal" };
+}
+
+function findInventoryProduct(identifier) {
+  const normalized = String(identifier || "").trim().toLowerCase();
+  return inventoryProducts.find((product) => (
+    String(product.id) === normalized ||
+    product.sku.toLowerCase() === normalized ||
+    product.qr.toLowerCase() === normalized
+  ));
+}
+
+function createQrMatrix(value) {
+  let seed = Array.from(value).reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  let cells = "";
+
+  for (let index = 0; index < 81; index += 1) {
+    const x = index % 9;
+    const y = Math.floor(index / 9);
+    const finder = (x < 3 && y < 3) || (x > 5 && y < 3) || (x < 3 && y > 5);
+    seed = (seed * 1103515245 + 12345) % 2147483648;
+    const on = finder || seed % 5 < 2;
+    cells += `<span class="qr-cell${on ? " on" : ""}"></span>`;
+  }
+
+  return `<div class="qr-matrix" aria-hidden="true">${cells}</div>`;
+}
+
+function renderQrLabel(product) {
+  if (!qrLabel || !product) return;
+
+  const encodedQr = encodeURIComponent(product.qr);
+  qrLabel.innerHTML = `
+    <img class="qr-code-img" src="https://api.qrserver.com/v1/create-qr-code/?size=132x132&data=${encodedQr}" alt="QR Code ${product.sku}" />
+    <div class="qr-fallback">${createQrMatrix(product.qr)}</div>
+    <strong>${product.sku}</strong>
+    <small>${product.qr}</small>
+  `;
+}
+
+function renderInventory() {
+  if (!inventoryProductList) return;
+
+  inventoryProductList.innerHTML = "";
+
+  inventoryProducts.forEach((product) => {
+    const status = getStockStatus(product);
+    const row = document.createElement("button");
+    row.type = "button";
+    row.className = `inventory-product-row ${status.className}`;
+    row.classList.toggle("active", product.id === selectedInventoryProductId);
+    row.innerHTML = `
+      <span>
+        <strong>${product.name}</strong>
+        <small>${product.sku} - ${product.category} - ${product.location}</small>
+      </span>
+      <span>
+        <strong>${product.qty}</strong>
+        <small>min. ${product.min}</small>
+        <span class="pill ${status.pill}">${status.label}</span>
+      </span>
+    `;
+    row.addEventListener("click", () => {
+      selectedInventoryProductId = product.id;
+      renderInventory();
+    });
+    inventoryProductList.appendChild(row);
+  });
+
+  const selectedProduct = inventoryProducts.find((product) => product.id === selectedInventoryProductId) || inventoryProducts[0];
+  const lowProducts = inventoryProducts.filter((product) => product.qty <= product.min);
+
+  if (selectedStockName && selectedProduct) {
+    selectedStockName.textContent = selectedProduct.name;
+    selectedStockMeta.textContent = `${selectedProduct.sku} - ${selectedProduct.location}`;
+    renderQrLabel(selectedProduct);
+  }
+
+  if (stockLowCount) stockLowCount.textContent = `${lowProducts.length} baixos`;
+  if (stockTotalProducts) stockTotalProducts.textContent = inventoryProducts.length;
+  if (stockAlertProducts) stockAlertProducts.textContent = lowProducts.length;
+  if (stockLastMovement) stockLastMovement.textContent = stockMovements[0]?.reason || "-";
+
+  if (lowStockList) {
+    lowStockList.innerHTML = lowProducts.map((product) => `
+      <div class="low-stock-item">
+        <strong>${product.name}</strong>
+        <small>${product.qty} atual / minimo ${product.min} - ${product.location}</small>
+      </div>
+    `).join("");
+  }
+
+  if (stockHistoryList) {
+    stockHistoryList.innerHTML = stockMovements.slice(0, 8).map((movement) => `
+      <div class="stock-history-item">
+        <span>
+          <strong>${movement.product}</strong>
+          <small>${movement.type} - ${movement.qty} un. - ${movement.reason}</small>
+          <small>${movement.user} - ${movement.date}</small>
+        </span>
+        <span>
+          <strong>${movement.before} -> ${movement.after}</strong>
+        </span>
+      </div>
+    `).join("");
+  }
+}
+
+function registerStockMovement({ product, type, qty, reason, user = "Estoque" }) {
+  const before = product.qty;
+  const after = type === "entrada" ? before + qty : before - qty;
+
+  if (after < 0) {
+    return false;
+  }
+
+  product.qty = after;
+  stockMovements.unshift({
+    product: product.name,
+    type,
+    qty,
+    user,
+    date: "Agora",
+    reason,
+    before,
+    after
+  });
+  selectedInventoryProductId = product.id;
+  renderInventory();
+  return true;
+}
+
+if (inventoryProductForm) {
+  inventoryProductForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    const sku = document.querySelector(".stock-product-sku").value.trim().toUpperCase();
+    const product = {
+      id: Math.max(0, ...inventoryProducts.map((item) => item.id)) + 1,
+      name: document.querySelector(".stock-product-name").value.trim(),
+      sku,
+      category: document.querySelector(".stock-product-category").value.trim(),
+      location: document.querySelector(".stock-product-location").value.trim(),
+      qty: Number(document.querySelector(".stock-product-qty").value || 0),
+      min: Number(document.querySelector(".stock-product-min").value || 0),
+      cost: Number(document.querySelector(".stock-product-cost").value || 0),
+      price: Number(document.querySelector(".stock-product-price").value || 0),
+      qr: `PROD:${sku}`
+    };
+
+    inventoryProducts.push(product);
+    selectedInventoryProductId = product.id;
+    inventoryProductForm.reset();
+    document.querySelector(".stock-product-qty").value = "0";
+    document.querySelector(".stock-product-min").value = "1";
+    document.querySelector(".stock-product-cost").value = "0";
+    document.querySelector(".stock-product-price").value = "0";
+    renderInventory();
+  });
+}
+
+if (scanProductButton) {
+  scanProductButton.addEventListener("click", () => {
+    const product = findInventoryProduct(stockScanInput.value);
+    if (!product) {
+      stockScanInput.value = "";
+      stockScanInput.placeholder = "Produto nao encontrado";
+      return;
+    }
+
+    selectedInventoryProductId = product.id;
+    document.querySelector(".entry-identifier").value = product.sku;
+    document.querySelector(".exit-identifier").value = product.sku;
+    renderInventory();
+  });
+}
+
+if (startQrCameraButton) {
+  startQrCameraButton.addEventListener("click", async () => {
+    if (!("BarcodeDetector" in window) || !navigator.mediaDevices?.getUserMedia) {
+      qrScannerStatus.textContent = "Camera indisponivel. Digite ou cole o SKU/QR no campo acima.";
+      stockScanInput?.focus();
+      return;
+    }
+
+    try {
+      const detector = new BarcodeDetector({ formats: ["qr_code"] });
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+      qrScannerVideo.srcObject = stream;
+      qrScannerVideo.classList.add("active");
+      await qrScannerVideo.play();
+      qrScannerStatus.textContent = "Aponte a camera para o QR Code do produto";
+
+      const scan = async () => {
+        const codes = await detector.detect(qrScannerVideo);
+        if (codes[0]) {
+          stockScanInput.value = codes[0].rawValue;
+          qrScannerStatus.textContent = `QR lido: ${codes[0].rawValue}`;
+          stream.getTracks().forEach((track) => track.stop());
+          qrScannerVideo.classList.remove("active");
+          scanProductButton?.click();
+          return;
+        }
+
+        if (qrScannerVideo.classList.contains("active")) {
+          window.requestAnimationFrame(scan);
+        }
+      };
+
+      scan();
+    } catch (error) {
+      qrScannerStatus.textContent = "Nao foi possivel abrir a camera. Use SKU ou QR manual.";
+    }
+  });
+}
+
+if (stockEntryForm) {
+  stockEntryForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    const product = findInventoryProduct(document.querySelector(".entry-identifier").value);
+    if (!product) return;
+
+    registerStockMovement({
+      product,
+      type: "entrada",
+      qty: Number(document.querySelector(".entry-qty").value || 1),
+      reason: document.querySelector(".entry-reason").value.trim() || "reposicao"
+    });
+  });
+}
+
+if (stockExitForm) {
+  stockExitForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    const product = findInventoryProduct(document.querySelector(".exit-identifier").value);
+    if (!product) return;
+
+    const ok = registerStockMovement({
+      product,
+      type: "saida",
+      qty: Number(document.querySelector(".exit-qty").value || 1),
+      reason: document.querySelector(".exit-reason").value
+    });
+
+    if (!ok) {
+      document.querySelector(".exit-qty").value = product.qty;
+    }
+  });
+}
+
+if (printQrButton) {
+  printQrButton.addEventListener("click", () => {
+    const product = inventoryProducts.find((item) => item.id === selectedInventoryProductId);
+    if (!product) return;
+
+    const printWindow = window.open("", "_blank", "width=360,height=520");
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Etiqueta ${product.sku}</title>
+          <style>
+            .qr-matrix { width: 132px; height: 132px; display: grid; grid-template-columns: repeat(9, 1fr); grid-template-rows: repeat(9, 1fr); gap: 2px; padding: 6px; border: 1px solid #111; margin: 12px auto; }
+            .qr-cell { background: #fff; }
+            .qr-cell.on { background: #111; }
+            img { width: 132px; height: 132px; display: block; margin: 12px auto; }
+          </style>
+        </head>
+        <body style="font-family: Arial, sans-serif; display: grid; place-items: center; min-height: 100vh;">
+          <div style="border: 1px solid #111; padding: 18px; text-align: center;">
+            <h2>${product.name}</h2>
+            <p>${product.sku}</p>
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=132x132&data=${encodeURIComponent(product.qr)}" alt="QR Code ${product.sku}" />
+            <p>${product.qr}</p>
+            <small>${product.location}</small>
+          </div>
+          <script>window.print();<\/script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  });
+}
+
 let draggedCard = null;
 
 function getPriorityRank(element) {
@@ -551,3 +875,4 @@ updateCompletionState();
 renderTechnicians();
 fillTechnicianForm(technicians[0]);
 sortServiceOrdersByPriority();
+renderInventory();

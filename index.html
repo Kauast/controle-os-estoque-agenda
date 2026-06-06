@@ -232,48 +232,162 @@
           <article class="stock-panel">
             <div class="section-heading">
               <div>
-                <span>Almoxarifado</span>
-                <h2>Estoque critico</h2>
+                <span>Almoxarifado com QR Code</span>
+                <h2>Produtos, entradas, saidas e historico</h2>
               </div>
-              <button class="ghost-button">Reposicao</button>
+              <span class="pill amber stock-low-count">3 baixos</span>
             </div>
 
-            <table>
-              <thead>
-                <tr>
-                  <th>Item</th>
-                  <th>Min.</th>
-                  <th>Atual</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Fonte 12V 2A</td>
-                  <td>20</td>
-                  <td>8</td>
-                  <td><span class="pill red">Critico</span></td>
-                </tr>
-                <tr>
-                  <td>Bateria 7Ah</td>
-                  <td>12</td>
-                  <td>10</td>
-                  <td><span class="pill amber">Baixo</span></td>
-                </tr>
-                <tr>
-                  <td>Cabo UTP Cat6</td>
-                  <td>6</td>
-                  <td>5</td>
-                  <td><span class="pill amber">Baixo</span></td>
-                </tr>
-                <tr>
-                  <td>Sensor magnetico</td>
-                  <td>30</td>
-                  <td>42</td>
-                  <td><span class="pill teal">Ok</span></td>
-                </tr>
-              </tbody>
-            </table>
+            <div class="inventory-dashboard">
+              <div>
+                <span>Itens cadastrados</span>
+                <strong class="stock-total-products">6</strong>
+              </div>
+              <div>
+                <span>Alertas</span>
+                <strong class="stock-alert-products">3</strong>
+              </div>
+              <div>
+                <span>Ultima movimentacao</span>
+                <strong class="stock-last-movement">OS</strong>
+              </div>
+            </div>
+
+            <div class="inventory-layout">
+              <section class="inventory-products">
+                <div class="inventory-tools">
+                  <label>
+                    Scanner QR / SKU
+                    <input class="stock-scan-input" type="search" placeholder="Escaneie QR ou digite SKU" />
+                  </label>
+                  <button class="secondary-button start-qr-camera-button" type="button">Ler camera</button>
+                  <button class="secondary-button scan-product-button" type="button">Abrir produto</button>
+                </div>
+                <div class="qr-scanner-box">
+                  <video class="qr-scanner-video" playsinline muted></video>
+                  <small class="qr-scanner-status">Leitor QR pronto para SKU ou camera</small>
+                </div>
+                <div class="inventory-product-list" aria-label="Produtos cadastrados"></div>
+              </section>
+
+              <section class="inventory-side">
+                <form class="inventory-product-form">
+                  <div class="form-section-title">
+                    <span>Cadastro</span>
+                    <strong>Novo produto</strong>
+                  </div>
+                  <div class="form-grid two">
+                    <label>
+                      Nome
+                      <input class="stock-product-name" type="text" required />
+                    </label>
+                    <label>
+                      SKU
+                      <input class="stock-product-sku" type="text" required />
+                    </label>
+                    <label>
+                      Categoria
+                      <input class="stock-product-category" type="text" required />
+                    </label>
+                    <label>
+                      Localizacao
+                      <input class="stock-product-location" type="text" required />
+                    </label>
+                    <label>
+                      Quantidade atual
+                      <input class="stock-product-qty" type="number" min="0" value="0" required />
+                    </label>
+                    <label>
+                      Estoque minimo
+                      <input class="stock-product-min" type="number" min="0" value="1" required />
+                    </label>
+                    <label>
+                      Preco de custo
+                      <input class="stock-product-cost" type="number" min="0" step="0.01" value="0" required />
+                    </label>
+                    <label>
+                      Preco de venda
+                      <input class="stock-product-price" type="number" min="0" step="0.01" value="0" />
+                    </label>
+                  </div>
+                  <button class="primary-button wide" type="submit">Cadastrar e gerar QR</button>
+                </form>
+
+                <div class="inventory-selected-card">
+                  <div>
+                    <span>Produto selecionado</span>
+                    <strong class="selected-stock-name">Fonte 12V 2A</strong>
+                    <small class="selected-stock-meta">FON-12V-2A - Prateleira A1</small>
+                  </div>
+                  <div class="qr-label" aria-label="Etiqueta QR do produto"></div>
+                  <button class="secondary-button print-qr-button" type="button">Imprimir etiqueta</button>
+                </div>
+              </section>
+            </div>
+
+            <div class="inventory-movement-grid">
+              <form class="stock-movement-form stock-entry-form">
+                <div class="form-section-title">
+                  <span>Entrada</span>
+                  <strong>Somar estoque</strong>
+                </div>
+                <label>
+                  SKU ou QR
+                  <input class="entry-identifier" type="text" required />
+                </label>
+                <label>
+                  Quantidade
+                  <input class="entry-qty" type="number" min="1" value="1" required />
+                </label>
+                <label>
+                  Fornecedor / motivo
+                  <input class="entry-reason" type="text" placeholder="Fornecedor A - reposicao" required />
+                </label>
+                <button class="primary-button wide" type="submit">Registrar entrada</button>
+              </form>
+
+              <form class="stock-movement-form stock-exit-form">
+                <div class="form-section-title">
+                  <span>Saida</span>
+                  <strong>Baixar estoque</strong>
+                </div>
+                <label>
+                  SKU ou QR
+                  <input class="exit-identifier" type="text" required />
+                </label>
+                <label>
+                  Quantidade
+                  <input class="exit-qty" type="number" min="1" value="1" required />
+                </label>
+                <label>
+                  Motivo
+                  <select class="exit-reason" required>
+                    <option value="venda">Venda</option>
+                    <option value="OS">OS</option>
+                    <option value="troca">Troca</option>
+                    <option value="perda">Perda</option>
+                    <option value="garantia">Garantia</option>
+                  </select>
+                </label>
+                <button class="primary-button wide" type="submit">Registrar saida</button>
+              </form>
+
+              <section class="stock-alert-list">
+                <div class="form-section-title">
+                  <span>Alertas</span>
+                  <strong>Estoque baixo</strong>
+                </div>
+                <div class="low-stock-list"></div>
+              </section>
+            </div>
+
+            <section class="stock-history-panel">
+              <div class="form-section-title">
+                <span>Historico</span>
+                <strong>Movimentacoes recentes</strong>
+              </div>
+              <div class="stock-history-list"></div>
+            </section>
           </article>
 
           <article class="finance-panel admin-only" aria-label="Painel financeiro do administrador">

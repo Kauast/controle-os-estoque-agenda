@@ -70,6 +70,30 @@ async function assertProductInCompany(user, productId) {
   }
 }
 
+async function findProductForStock(client, user, identifier) {
+  const { rows } = await client.query(
+    `SELECT *
+     FROM products
+     WHERE company_id = $1
+       AND active = true
+       AND (
+         id::text = $2
+         OR lower(sku) = lower($2)
+         OR lower(qr_code_value) = lower($2)
+       )
+     FOR UPDATE`,
+    [user.company_id, identifier],
+  );
+
+  if (!rows[0]) {
+    const error = new Error("Produto nao encontrado pelo SKU, QR Code ou ID informado.");
+    error.status = 404;
+    throw error;
+  }
+
+  return rows[0];
+}
+
 async function assertRecordInCompany(table, id, companyId, label) {
   if (!id) return;
 
@@ -135,6 +159,47 @@ app.post("/usuarios", requireAuth, allowRoles("admin"), asyncRoute(async (req, r
       passwordHash,
       req.body.role,
       Boolean(req.body.can_view_financial),
+    ],
+  );
+
+  res.status(201).json(rows[0]);
+}));
+
+app.get("/produtos", requireAuth, allowRoles("admin", "estoque", "instrutor_os", "vendedor"), asyncRoute(async (req, res) => {
+  const { rows } = await query(
+    `SELECT *
+     FROM product_stock
+     WHERE company_id = $1
+     ORDER BY name`,
+    [req.user.company_id],
+  );
+
+  res.json(rows);
+}));
+
+app.post("/produtos", requireAuth, allowRoles("admin", "estoque"), asyncRoute(async (req, res) => {
+  requireFields(req.body, ["name", "sku", "category", "quantity_total", "min_quantity", "purchase_cost"]);
+
+  const qrCodeValue = req.body.qr_code_value || `PROD:${req.body.sku}`;
+  const { rows } = await query(
+    `INSERT INTO products (
+       company_id, name, sku, category, location, qr_code_value,
+       quantity_total, min_quantity, purchase_cost, sale_price, supplier
+     )
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, COALESCE($10, 0), $11)
+     RETURNING *`,
+    [
+      req.user.company_id,
+      req.body.name,
+      req.body.sku,
+      req.body.category,
+      req.body.location || null,
+      qrCodeValue,
+      req.body.quantity_total,
+      req.body.min_quantity,
+      req.body.purchase_cost,
+      req.body.sale_price || 0,
+      req.body.supplier || null,
     ],
   );
 
@@ -298,7 +363,7 @@ app.patch("/os/:id", requireAuth, asyncRoute(async (req, res) => {
   res.json(rows[0]);
 }));
 
-app.get("/estoque", requireAuth, allowRoles("admin", "estoque", "instrutor_os"), asyncRoute(async (req, res) => {
+app.get("/estoque", requireAuth, allowRoles("admin", "estoque", "instrutor_os", "vendedor"), asyncRoute(async (req, res) => {
   const { rows } = await query(
     `SELECT *
      FROM product_stock
@@ -310,28 +375,141 @@ app.get("/estoque", requireAuth, allowRoles("admin", "estoque", "instrutor_os"),
   res.json(rows);
 }));
 
+app.get("/estoque/baixos", requireAuth, allowRoles("admin", "estoque", "vendedor"), asyncRoute(async (req, res) => {
+  const { rows } = await query(
+    `SELECT *
+     FROM product_stock
+     WHERE company_id = $1
+       AND quantity_total <= min_quantity
+     ORDER BY quantity_total ASC, name`,
+    [req.user.company_id],
+  );
+
+  res.json(rows);
+}));
+
+app.get("/estoque/historico", requireAuth, allowRoles("admin", "estoque", "vendedor"), asyncRoute(async (req, res) => {
+  const { rows } = await query(
+    `SELECT
+       sm.id,
+       sm.movement_type AS type,
+       sm.quantity,
+       sm.stock_before,
+       sm.stock_after,
+       sm.reason,
+       sm.supplier,
+       sm.notes,
+       sm.created_at,
+       p.name AS product_name,
+       p.sku,
+       u.name AS user_name
+     FROM stock_movements sm
+     JOIN products p ON p.id = sm.product_id
+     LEFT JOIN users u ON u.id = sm.user_id
+     WHERE p.company_id = $1
+     ORDER BY sm.created_at DESC
+     LIMIT 200`,
+    [req.user.company_id],
+  );
+
+  res.json(rows);
+}));
+
 app.post("/estoque/entrada", requireAuth, allowRoles("admin", "estoque"), asyncRoute(async (req, res) => {
-  requireFields(req.body, ["product_id", "quantity"]);
+  requireFields(req.body, ["quantity"]);
+  const identifier = req.body.product_id || req.body.sku || req.body.qr_code_value;
+
+  if (!identifier) {
+    return res.status(400).json({ error: "Informe product_id, sku ou qr_code_value." });
+  }
 
   const result = await transaction(async (client) => {
+    const currentProduct = await findProductForStock(client, req.user, identifier);
+    const quantity = Number(req.body.quantity);
+    const stockBefore = Number(currentProduct.quantity_total);
+    const stockAfter = stockBefore + quantity;
+
     const product = await client.query(
       `UPDATE products
        SET quantity_total = quantity_total + $1
        WHERE id = $2 AND company_id = $3
        RETURNING *`,
-      [req.body.quantity, req.body.product_id, req.user.company_id],
+      [quantity, currentProduct.id, req.user.company_id],
     );
 
-    if (!product.rows[0]) {
-      const error = new Error("Produto nao encontrado.");
-      error.status = 404;
+    await client.query(
+      `INSERT INTO stock_movements (
+         product_id, movement_type, quantity, stock_before, stock_after,
+         reason, supplier, user_id, notes
+       )
+       VALUES ($1, 'entrada', $2, $3, $4, $5, $6, $7, $8)`,
+      [
+        currentProduct.id,
+        quantity,
+        stockBefore,
+        stockAfter,
+        req.body.reason || req.body.motivo || "reposicao",
+        req.body.supplier || req.body.fornecedor || null,
+        req.user.id,
+        req.body.notes || "Entrada manual",
+      ],
+    );
+
+    return product.rows[0];
+  });
+
+  res.status(201).json(result);
+}));
+
+app.post("/estoque/saida", requireAuth, allowRoles("admin", "estoque", "vendedor"), asyncRoute(async (req, res) => {
+  requireFields(req.body, ["quantity", "reason"]);
+  const identifier = req.body.product_id || req.body.sku || req.body.qr_code_value;
+
+  if (!identifier) {
+    return res.status(400).json({ error: "Informe product_id, sku ou qr_code_value." });
+  }
+
+  const allowedReasons = ["venda", "OS", "troca", "perda", "garantia"];
+  if (!allowedReasons.includes(req.body.reason)) {
+    return res.status(400).json({ error: "Motivo invalido para saida." });
+  }
+
+  const result = await transaction(async (client) => {
+    const currentProduct = await findProductForStock(client, req.user, identifier);
+    const quantity = Number(req.body.quantity);
+    const stockBefore = Number(currentProduct.quantity_total);
+    const stockAfter = stockBefore - quantity;
+
+    if (stockAfter < 0) {
+      const error = new Error("Estoque insuficiente para registrar saida.");
+      error.status = 409;
       throw error;
     }
 
+    const product = await client.query(
+      `UPDATE products
+       SET quantity_total = quantity_total - $1
+       WHERE id = $2 AND company_id = $3
+       RETURNING *`,
+      [quantity, currentProduct.id, req.user.company_id],
+    );
+
     await client.query(
-      `INSERT INTO stock_movements (product_id, movement_type, quantity, user_id, notes)
-       VALUES ($1, 'entrada', $2, $3, $4)`,
-      [req.body.product_id, req.body.quantity, req.user.id, req.body.notes || "Entrada manual"],
+      `INSERT INTO stock_movements (
+         product_id, movement_type, quantity, stock_before, stock_after,
+         reason, user_id, service_order_id, notes
+       )
+       VALUES ($1, 'saida', $2, $3, $4, $5, $6, $7, $8)`,
+      [
+        currentProduct.id,
+        quantity,
+        stockBefore,
+        stockAfter,
+        req.body.reason,
+        req.user.id,
+        req.body.service_order_id || null,
+        req.body.notes || "Saida manual",
+      ],
     );
 
     return product.rows[0];
