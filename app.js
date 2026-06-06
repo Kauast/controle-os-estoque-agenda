@@ -5,6 +5,11 @@ navButtons.forEach((button) => {
     const group = button.parentElement.querySelectorAll("button");
     group.forEach((item) => item.classList.remove("active"));
     button.classList.add("active");
+
+    if (button.closest(".nav-list")) {
+      const isFinanceSection = button.textContent.trim().toLowerCase() === "financeiro";
+      document.body.classList.toggle("finance-visible", isFinanceSection);
+    }
   });
 });
 
@@ -48,7 +53,7 @@ function renderClientProducts() {
   selectedProducts.forEach((item) => {
     const row = document.createElement("div");
     row.className = "client-product-row";
-    row.innerHTML = `<span>${item.qty}x ${item.name}</span><strong>${formatCurrency(item.qty * item.price)}</strong>`;
+    row.innerHTML = `<span>${item.qty}x ${item.name}</span><strong class="financial-content">${formatCurrency(item.qty * item.price)}</strong>`;
     clientProductList.appendChild(row);
   });
 

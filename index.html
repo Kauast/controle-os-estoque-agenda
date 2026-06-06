@@ -64,7 +64,7 @@
             <strong>92%</strong>
             <small>Ultimos 30 dias</small>
           </article>
-          <article class="metric-card">
+          <article class="metric-card financial-content">
             <span>Faturamento previsto</span>
             <strong>R$ 86,4k</strong>
             <small>Materiais + servicos agendados</small>
@@ -301,11 +301,11 @@
                       Estoque minimo
                       <input class="stock-product-min" type="number" min="0" value="1" required />
                     </label>
-                    <label>
+                    <label class="financial-content">
                       Preco de custo
                       <input class="stock-product-cost" type="number" min="0" step="0.01" value="0" required />
                     </label>
-                    <label>
+                    <label class="financial-content">
                       Preco de venda
                       <input class="stock-product-price" type="number" min="0" step="0.01" value="0" />
                     </label>
@@ -390,7 +390,7 @@
             </section>
           </article>
 
-          <article class="finance-panel admin-only" aria-label="Painel financeiro do administrador">
+          <article class="finance-panel admin-only financial-content" aria-label="Painel financeiro do administrador">
             <div class="section-heading">
               <div>
                 <span>Somente administrador</span>
@@ -962,27 +962,27 @@
           <div class="product-grid" aria-label="Produtos disponiveis no estoque">
             <button class="product-card active" data-product="Fonte 12V 2A" data-price="48,00">
               <strong>Fonte 12V 2A</strong>
-              <span>8 em estoque · R$ 48,00</span>
+              <span>8 em estoque <span class="financial-content">· R$ 48,00</span></span>
             </button>
             <button class="product-card" data-product="Bateria 7Ah" data-price="96,00">
               <strong>Bateria 7Ah</strong>
-              <span>10 em estoque · R$ 96,00</span>
+              <span>10 em estoque <span class="financial-content">· R$ 96,00</span></span>
             </button>
             <button class="product-card" data-product="Sensor magnetico" data-price="32,00">
               <strong>Sensor magnetico</strong>
-              <span>42 em estoque · R$ 32,00</span>
+              <span>42 em estoque <span class="financial-content">· R$ 32,00</span></span>
             </button>
             <button class="product-card" data-product="Camera dome Full HD" data-price="189,00">
               <strong>Camera dome Full HD</strong>
-              <span>14 em estoque · R$ 189,00</span>
+              <span>14 em estoque <span class="financial-content">· R$ 189,00</span></span>
             </button>
             <button class="product-card" data-product="Cabo UTP Cat6" data-price="420,00">
               <strong>Cabo UTP Cat6</strong>
-              <span>5 caixas · R$ 420,00</span>
+              <span>5 caixas <span class="financial-content">· R$ 420,00</span></span>
             </button>
             <button class="product-card" data-product="Controle remoto TX" data-price="58,00">
               <strong>Controle remoto TX</strong>
-              <span>24 em estoque · R$ 58,00</span>
+              <span>24 em estoque <span class="financial-content">· R$ 58,00</span></span>
             </button>
           </div>
           <label>
@@ -994,12 +994,12 @@
           <div class="client-products">
             <div class="client-products-head">
               <strong>Solicitacoes nesta OS</strong>
-              <span class="client-total">R$ 48,00</span>
+              <span class="client-total financial-content">R$ 48,00</span>
             </div>
             <div class="client-product-list">
               <div class="client-product-row">
                 <span>1x Fonte 12V 2A</span>
-                <strong>R$ 48,00</strong>
+                <strong class="financial-content">R$ 48,00</strong>
               </div>
             </div>
           </div>
