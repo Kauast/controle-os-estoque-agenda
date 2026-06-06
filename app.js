@@ -1,7 +1,28 @@
 const navButtons = document.querySelectorAll(".nav-list button, .mobile-tabs button, .bottom-nav button");
+const roleSelect = document.querySelector(".role-select");
+const financeNavButton = document.querySelector('.nav-list button[data-admin-only="true"]');
+
+function setUserRole(role) {
+  const isAdmin = role === "admin";
+  document.body.classList.toggle("is-admin", isAdmin);
+
+  if (!isAdmin && document.body.classList.contains("finance-visible")) {
+    document.body.classList.remove("finance-visible");
+    financeNavButton?.classList.remove("active");
+    document.querySelector(".nav-list button:not([data-admin-only])")?.classList.add("active");
+  }
+}
+
+setUserRole(roleSelect?.value || "admin");
+
+if (roleSelect) {
+  roleSelect.addEventListener("change", () => setUserRole(roleSelect.value));
+}
 
 navButtons.forEach((button) => {
   button.addEventListener("click", () => {
+    if (button.dataset.adminOnly === "true" && !document.body.classList.contains("is-admin")) return;
+
     const group = button.parentElement.querySelectorAll("button");
     group.forEach((item) => item.classList.remove("active"));
     button.classList.add("active");
@@ -513,6 +534,199 @@ document.querySelectorAll(".team-dropzone, .available-orders").forEach((zone) =>
   });
 });
 
+const orderList = document.querySelector(".order-list");
+const availableOrders = document.querySelector(".available-orders");
+const newOsButton = document.querySelector(".new-os-button");
+const newOsDialog = document.querySelector(".new-os-dialog");
+const newOsForm = document.querySelector(".new-os-form");
+const newOsStatusCopy = document.querySelector(".new-os-status-copy");
+const teamReportBody = document.querySelector(".team-report-body");
+const teamReportFilter = document.querySelector(".team-report-filter");
+const completedTeamCount = document.querySelector(".completed-team-count");
+const teamCompletedBase = {
+  "Equipe 1": 18,
+  "Equipe 2": 14,
+  "Equipe 3": 16,
+  "Equipe 4": 11,
+  "Equipe 5": 7
+};
+const teamReportMeta = {
+  "Equipe 1": { time: "1h42", photos: "100%", signatures: "100%", status: "No padrao", pill: "teal" },
+  "Equipe 2": { time: "2h05", photos: "96%", signatures: "93%", status: "Acompanhar", pill: "amber" },
+  "Equipe 3": { time: "1h58", photos: "98%", signatures: "100%", status: "No padrao", pill: "teal" },
+  "Equipe 4": { time: "2h26", photos: "91%", signatures: "88%", status: "Revisar", pill: "amber" },
+  "Equipe 5": { time: "1h35", photos: "100%", signatures: "100%", status: "Plantao ok", pill: "teal" }
+};
+const serviceOrders = [
+  { code: "OS-1048", client: "Cliente Alpha Condominio", description: "Portao automatico sem resposta - 2 produtos no cliente", tech: "Bruno", time: "09:30", team: "Equipe 1", priority: "high", status: "pending" },
+  { code: "OS-1049", client: "Mercado Central", description: "Preventiva em cameras CFTV", tech: "Marcos", time: "11:00", team: "Equipe 3", priority: "normal", status: "pending" },
+  { code: "OS-1050", client: "Clinica Santa Clara", description: "Troca de fonte e bateria", tech: "Ana", time: "14:00", team: "Equipe 2", priority: "warning", status: "pending" },
+  { code: "OS-1051", client: "Residencial Norte", description: "Instalacao de leitor facial", tech: "Diego", time: "16:30", team: "Equipe 4", priority: "normal", status: "pending" }
+];
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[char]);
+}
+
+function getOrderClass(order) {
+  if (order.status === "completed") return "completed";
+  if (order.priority === "high") return "high";
+  if (order.priority === "warning") return "warning";
+  return "";
+}
+
+function createDispatchCard(order) {
+  const card = document.createElement("article");
+  card.className = `dispatch-card ${getOrderClass(order)}`.trim();
+  card.draggable = true;
+  card.dataset.osCode = order.code;
+  card.innerHTML = `
+    <strong>${escapeHtml(order.code)}</strong>
+    <span>${escapeHtml(order.client.replace(/^Cliente\s+/, ""))}</span>
+    <small>${order.time} - ${order.status === "completed" ? "concluida" : "agendada"}</small>
+  `;
+  bindDispatchCard(card);
+  return card;
+}
+
+function upsertDispatchCard(order) {
+  document.querySelector(`.dispatch-card[data-os-code="${order.code}"]`)?.remove();
+  const card = createDispatchCard(order);
+
+  if (order.team && order.team !== "Sem equipe") {
+    const zone = document.querySelector(`.team-column[data-team="${order.team}"] .team-dropzone`);
+    zone?.querySelector(".empty-placeholder")?.remove();
+    zone?.appendChild(card);
+  } else if (availableOrders) {
+    availableOrders.appendChild(card);
+  }
+
+  refreshDropzones();
+  sortServiceOrdersByPriority();
+}
+
+function renderOrderQueue() {
+  if (!orderList) return;
+
+  orderList.innerHTML = "";
+  serviceOrders
+    .slice()
+    .sort((a, b) => getPriorityRank({ classList: { contains: (className) => getOrderClass(a) === className } }) - getPriorityRank({ classList: { contains: (className) => getOrderClass(b) === className } }) || getScheduleTime({ textContent: a.time }) - getScheduleTime({ textContent: b.time }))
+    .forEach((order) => {
+      const row = document.createElement("article");
+      row.className = `order-row ${getOrderClass(order)}`.trim();
+      row.dataset.osCode = order.code;
+      row.innerHTML = `
+        <div class="order-code">${escapeHtml(order.code)}</div>
+        <div>
+          <strong>${escapeHtml(order.client)}</strong>
+          <span>${escapeHtml(order.description)}</span>
+        </div>
+        <small>${escapeHtml(order.tech || order.team || "Sem tecnico")} - ${order.time}</small>
+      `;
+      orderList.appendChild(row);
+    });
+}
+
+function renderTeamReport() {
+  if (!teamReportBody) return;
+
+  const selectedTeam = teamReportFilter?.value || "all";
+  const teams = selectedTeam === "all" ? Object.keys(teamCompletedBase) : [selectedTeam];
+  const rows = teams.map((team) => {
+    const completedNow = serviceOrders.filter((order) => order.team === team && order.status === "completed").length;
+    const total = (teamCompletedBase[team] || 0) + completedNow;
+    const meta = teamReportMeta[team];
+    return `
+      <tr>
+        <td>${team}</td>
+        <td>${total}</td>
+        <td>${meta.time}</td>
+        <td>${meta.photos}</td>
+        <td>${meta.signatures}</td>
+        <td><span class="pill ${meta.pill}">${meta.status}</span></td>
+      </tr>
+    `;
+  });
+
+  teamReportBody.innerHTML = rows.join("");
+
+  if (completedTeamCount) {
+    const total = teams.reduce((sum, team) => {
+      const completedNow = serviceOrders.filter((order) => order.team === team && order.status === "completed").length;
+      return sum + (teamCompletedBase[team] || 0) + completedNow;
+    }, 0);
+    completedTeamCount.textContent = `${total} concluida${total === 1 ? "" : "s"}`;
+  }
+}
+
+function nextOrderCode() {
+  const highest = serviceOrders.reduce((max, order) => {
+    const number = Number(order.code.replace(/\D/g, ""));
+    return Number.isFinite(number) ? Math.max(max, number) : max;
+  }, 0);
+  return `OS-${highest + 1}`;
+}
+
+function addServiceOrder(order) {
+  serviceOrders.push(order);
+  renderOrderQueue();
+  upsertDispatchCard(order);
+  renderTeamReport();
+}
+
+teamReportFilter?.addEventListener("change", renderTeamReport);
+
+newOsButton?.addEventListener("click", () => {
+  const codeInput = document.querySelector(".new-os-code");
+  if (codeInput && !codeInput.value.trim()) codeInput.value = nextOrderCode();
+  newOsDialog?.showModal();
+});
+
+document.querySelectorAll(".close-new-os").forEach((button) => {
+  button.addEventListener("click", () => newOsDialog?.close());
+});
+
+newOsForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const codeInput = document.querySelector(".new-os-code");
+  const clientInput = document.querySelector(".new-os-client");
+  const descriptionInput = document.querySelector(".new-os-description");
+  const timeInput = document.querySelector(".new-os-time");
+  const teamInput = document.querySelector(".new-os-team");
+  const priorityInput = document.querySelector(".new-os-priority");
+  const statusInput = document.querySelector(".new-os-status");
+  const techInput = document.querySelector(".new-os-tech");
+  const code = (codeInput.value.trim() || nextOrderCode()).toUpperCase();
+
+  if (serviceOrders.some((order) => order.code === code)) {
+    newOsStatusCopy.textContent = "Ja existe uma OS com esse numero.";
+    return;
+  }
+
+  addServiceOrder({
+    code,
+    client: clientInput.value.trim(),
+    description: descriptionInput.value.trim(),
+    tech: techInput.value.trim(),
+    time: timeInput.value,
+    team: teamInput.value,
+    priority: priorityInput.value,
+    status: statusInput.value
+  });
+
+  newOsStatusCopy.textContent = `${code} adicionada na fila.`;
+  newOsForm.reset();
+  codeInput.value = nextOrderCode();
+  newOsDialog?.close();
+});
+
 const photoProofs = document.querySelectorAll(".photo-proof");
 const capturePhotoButton = document.querySelector(".capture-photo-button");
 const signatureBox = document.querySelector(".signature-box");
@@ -536,6 +750,7 @@ let attendanceStarted = false;
 let signatureHasInk = false;
 let isSigning = false;
 let lastSignaturePoint = null;
+let currentOsCompletionRegistered = false;
 
 function normalizeTrackerChip(value) {
   return value.replace(/\D/g, "");
@@ -756,6 +971,16 @@ if (finishOsButton) {
   finishOsButton.addEventListener("click", () => {
     finishOsButton.textContent = "OS concluida";
     completionStatus.textContent = "Concluida";
+
+    if (!currentOsCompletionRegistered) {
+      const currentOrder = serviceOrders.find((order) => order.code === "OS-1048");
+      if (currentOrder) {
+        currentOrder.status = "completed";
+        renderOrderQueue();
+        renderTeamReport();
+      }
+      currentOsCompletionRegistered = true;
+    }
   });
 }
 
@@ -919,6 +1144,8 @@ if (deleteTechButton) {
 
 refreshDropzones();
 updateCompletionState();
+renderOrderQueue();
+renderTeamReport();
 renderTechnicians();
 fillTechnicianForm(technicians[0]);
 sortServiceOrdersByPriority();

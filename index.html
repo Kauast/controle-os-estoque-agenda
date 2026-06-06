@@ -24,7 +24,7 @@
           <button>Estoque</button>
           <button>Clientes</button>
           <button>Equipe</button>
-          <button>Financeiro</button>
+          <button data-admin-only="true">Financeiro</button>
           <button>Relatorios</button>
         </nav>
 
@@ -42,9 +42,18 @@
             <h1>Agenda mensal, OS e estoque</h1>
           </div>
           <div class="topbar-actions">
+            <label class="role-switch">
+              Perfil
+              <select class="role-select" aria-label="Perfil do usuario">
+                <option value="admin">Administrador</option>
+                <option value="estoque">Estoque</option>
+                <option value="tecnico">Tecnico</option>
+                <option value="vendedor">Vendedor</option>
+              </select>
+            </label>
             <button class="icon-button" aria-label="Pesquisar">⌕</button>
             <button class="secondary-button">Exportar</button>
-            <button class="primary-button">Nova OS</button>
+            <button class="primary-button new-os-button">Nova OS</button>
           </div>
         </header>
 
@@ -486,7 +495,21 @@
                     <span>Relatorio por equipe</span>
                     <strong>Produtividade e qualidade</strong>
                   </div>
+                <div class="report-actions">
+                  <label>
+                    Equipe
+                    <select class="team-report-filter" aria-label="Filtrar OS concluidas por equipe">
+                      <option value="all">Todas</option>
+                      <option>Equipe 1</option>
+                      <option>Equipe 2</option>
+                      <option>Equipe 3</option>
+                      <option>Equipe 4</option>
+                      <option>Equipe 5</option>
+                    </select>
+                  </label>
+                  <span class="pill teal completed-team-count">66 concluidas</span>
                   <button class="ghost-button">Exportar</button>
+                </div>
                 </div>
                 <table>
                   <thead>
@@ -499,7 +522,7 @@
                       <th>Status</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody class="team-report-body">
                     <tr>
                       <td>Equipe 1</td>
                       <td>18</td>
@@ -1113,6 +1136,75 @@
         </nav>
       </main>
     </div>
+
+    <dialog class="new-os-dialog" aria-label="Cadastrar nova ordem de servico">
+      <form class="new-os-form" method="dialog">
+        <div class="dialog-head">
+          <div>
+            <span>Cadastro operacional</span>
+            <h2>Nova OS</h2>
+          </div>
+          <button class="icon-button close-new-os" type="button" aria-label="Fechar">×</button>
+        </div>
+
+        <div class="form-grid two">
+          <label>
+            Cliente
+            <input class="new-os-client" type="text" placeholder="Nome do cliente" required />
+          </label>
+          <label>
+            Numero da OS
+            <input class="new-os-code" type="text" placeholder="Gerado automaticamente" />
+          </label>
+          <label>
+            Descricao
+            <input class="new-os-description" type="text" placeholder="Servico solicitado" required />
+          </label>
+          <label>
+            Horario
+            <input class="new-os-time" type="time" value="09:00" required />
+          </label>
+          <label>
+            Equipe
+            <select class="new-os-team" required>
+              <option>Sem equipe</option>
+              <option>Equipe 1</option>
+              <option>Equipe 2</option>
+              <option>Equipe 3</option>
+              <option>Equipe 4</option>
+              <option>Equipe 5</option>
+            </select>
+          </label>
+          <label>
+            Prioridade
+            <select class="new-os-priority" required>
+              <option value="normal">Normal</option>
+              <option value="warning">Media</option>
+              <option value="high">Alta</option>
+            </select>
+          </label>
+          <label>
+            Status
+            <select class="new-os-status" required>
+              <option value="pending">Pendente</option>
+              <option value="scheduled">Agendada</option>
+              <option value="completed">Concluida</option>
+            </select>
+          </label>
+          <label>
+            Tecnico
+            <input class="new-os-tech" type="text" placeholder="Responsavel" />
+          </label>
+        </div>
+
+        <div class="dialog-actions">
+          <small class="new-os-status-copy">A OS entra na fila e, se tiver equipe, aparece na agenda da equipe.</small>
+          <button class="secondary-button close-new-os" type="button">Cancelar</button>
+          <button class="primary-button" type="submit">Adicionar OS</button>
+        </div>
+      </form>
+    </dialog>
+
     <script src="./app.js"></script>
   </body>
 </html>
