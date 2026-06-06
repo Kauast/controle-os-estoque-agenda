@@ -117,6 +117,14 @@ async function assertRecordInCompany(table, id, companyId, label) {
   }
 }
 
+async function writeAudit(client, user, entityType, entityId, action, newData = null) {
+  await client.query(
+    `INSERT INTO audit_logs (company_id, user_id, entity_type, entity_id, action, new_data)
+     VALUES ($1, $2, $3, $4, $5, $6)`,
+    [user.company_id, user.id, entityType, entityId, action, newData],
+  );
+}
+
 app.get("/health", asyncRoute(async (req, res) => {
   await query("SELECT 1");
   res.json({ ok: true });
@@ -272,6 +280,85 @@ app.get("/os", requireAuth, asyncRoute(async (req, res) => {
   );
 
   res.json(rows);
+}));
+
+app.get("/os/:id", requireAuth, asyncRoute(async (req, res) => {
+  await assertServiceOrderInCompany(req.user, req.params.id);
+  await assertTechnicianOwnsOrder(req.user, req.params.id);
+
+  const [order, photos, signature, notes, materials, history] = await Promise.all([
+    query(
+      `SELECT so.*, c.name AS client_name, c.phone AS client_phone, c.email AS client_email,
+              c.address AS client_address, c.notes AS client_notes,
+              tech.name AS technician_name, t.name AS team_name
+       FROM service_orders so
+       JOIN clients c ON c.id = so.client_id
+       LEFT JOIN technicians tech ON tech.id = so.technician_id
+       LEFT JOIN teams t ON t.id = so.team_id
+       WHERE so.id = $1 AND so.company_id = $2`,
+      [req.params.id, req.user.company_id],
+    ),
+    query("SELECT * FROM service_order_photos WHERE service_order_id = $1 ORDER BY uploaded_at", [req.params.id]),
+    query("SELECT * FROM service_order_signatures WHERE service_order_id = $1", [req.params.id]),
+    query(
+      `SELECT son.*, u.name AS user_name
+       FROM service_order_notes son
+       LEFT JOIN users u ON u.id = son.user_id
+       WHERE son.service_order_id = $1
+       ORDER BY son.created_at DESC`,
+      [req.params.id],
+    ),
+    query(
+      `SELECT mr.*, p.name AS product_name, p.sku
+       FROM material_requests mr
+       JOIN products p ON p.id = mr.product_id
+       WHERE mr.service_order_id = $1
+       ORDER BY mr.requested_at DESC`,
+      [req.params.id],
+    ),
+    query(
+      `SELECT *
+       FROM client_service_history
+       WHERE client_id = (SELECT client_id FROM service_orders WHERE id = $1)
+       ORDER BY opened_at DESC`,
+      [req.params.id],
+    ),
+  ]);
+
+  if (!order.rows[0]) {
+    return res.status(404).json({ error: "OS nao encontrada." });
+  }
+
+  res.json({
+    order: order.rows[0],
+    photos: photos.rows,
+    signature: signature.rows[0] || null,
+    notes: notes.rows,
+    materials: materials.rows,
+    client_history: history.rows,
+  });
+}));
+
+app.post("/os/:id/checkin", requireAuth, asyncRoute(async (req, res) => {
+  await assertServiceOrderInCompany(req.user, req.params.id);
+  await assertTechnicianOwnsOrder(req.user, req.params.id);
+
+  const result = await transaction(async (client) => {
+    const { rows } = await client.query(
+      `UPDATE service_orders
+       SET started_at = COALESCE(started_at, now()),
+           checkin_location = COALESCE($1, checkin_location),
+           status = CASE WHEN status = 'aberta' THEN 'em_andamento' ELSE status END
+       WHERE id = $2 AND company_id = $3
+       RETURNING *`,
+      [req.body.location || null, req.params.id, req.user.company_id],
+    );
+
+    await writeAudit(client, req.user, "service_order", req.params.id, "checkin", { location: req.body.location || null });
+    return rows[0];
+  });
+
+  res.json(result);
 }));
 
 app.post("/os", requireAuth, allowRoles("admin", "estoque", "instrutor_os"), asyncRoute(async (req, res) => {
@@ -532,6 +619,105 @@ app.post("/os/:id/material", requireAuth, asyncRoute(async (req, res) => {
   );
 
   res.status(201).json(rows[0]);
+}));
+
+app.post("/os/:id/fotos", requireAuth, asyncRoute(async (req, res) => {
+  requireFields(req.body, ["photo_type", "file_url"]);
+  await assertServiceOrderInCompany(req.user, req.params.id);
+  await assertTechnicianOwnsOrder(req.user, req.params.id);
+
+  const result = await transaction(async (client) => {
+    const { rows } = await client.query(
+      `INSERT INTO service_order_photos (
+         service_order_id, photo_type, file_url, storage_key, file_name,
+         mime_type, file_size_bytes, uploaded_by
+       )
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       RETURNING *`,
+      [
+        req.params.id,
+        req.body.photo_type,
+        req.body.file_url,
+        req.body.storage_key || null,
+        req.body.file_name || null,
+        req.body.mime_type || null,
+        req.body.file_size_bytes || null,
+        req.user.id,
+      ],
+    );
+
+    await writeAudit(client, req.user, "service_order", req.params.id, "upload_photo", rows[0]);
+    return rows[0];
+  });
+
+  res.status(201).json(result);
+}));
+
+app.post("/os/:id/assinatura", requireAuth, asyncRoute(async (req, res) => {
+  requireFields(req.body, ["client_name", "signature_url"]);
+  await assertServiceOrderInCompany(req.user, req.params.id);
+  await assertTechnicianOwnsOrder(req.user, req.params.id);
+
+  const result = await transaction(async (client) => {
+    const { rows } = await client.query(
+      `INSERT INTO service_order_signatures (
+         service_order_id, client_name, signature_url, storage_key,
+         file_name, mime_type, file_size_bytes
+       )
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       ON CONFLICT (service_order_id)
+       DO UPDATE SET
+         client_name = EXCLUDED.client_name,
+         signature_url = EXCLUDED.signature_url,
+         storage_key = EXCLUDED.storage_key,
+         file_name = EXCLUDED.file_name,
+         mime_type = EXCLUDED.mime_type,
+         file_size_bytes = EXCLUDED.file_size_bytes,
+         signed_at = now()
+       RETURNING *`,
+      [
+        req.params.id,
+        req.body.client_name,
+        req.body.signature_url,
+        req.body.storage_key || null,
+        req.body.file_name || null,
+        req.body.mime_type || null,
+        req.body.file_size_bytes || null,
+      ],
+    );
+
+    await writeAudit(client, req.user, "service_order", req.params.id, "capture_signature", rows[0]);
+    return rows[0];
+  });
+
+  res.status(201).json(result);
+}));
+
+app.post("/os/:id/observacoes", requireAuth, asyncRoute(async (req, res) => {
+  requireFields(req.body, ["note"]);
+  await assertServiceOrderInCompany(req.user, req.params.id);
+  await assertTechnicianOwnsOrder(req.user, req.params.id);
+
+  const result = await transaction(async (client) => {
+    const { rows } = await client.query(
+      `INSERT INTO service_order_notes (service_order_id, user_id, note)
+       VALUES ($1, $2, $3)
+       RETURNING *`,
+      [req.params.id, req.user.id, req.body.note],
+    );
+
+    await client.query(
+      `UPDATE service_orders
+       SET technician_notes = CONCAT_WS(E'\n', technician_notes, $1)
+       WHERE id = $2`,
+      [req.body.note, req.params.id],
+    );
+
+    await writeAudit(client, req.user, "service_order", req.params.id, "add_technician_note", rows[0]);
+    return rows[0];
+  });
+
+  res.status(201).json(result);
 }));
 
 async function updateMaterialStatus(req, res, status, userColumn) {

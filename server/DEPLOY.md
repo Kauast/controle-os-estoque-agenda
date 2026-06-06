@@ -15,6 +15,8 @@ Este pacote sobe um banco PostgreSQL com as tabelas reais do projeto e uma API N
 - materiais vendidos por OS;
 - fotos obrigatorias;
 - assinatura do cliente;
+- check-in de atendimento do tecnico;
+- observacoes tecnicas permanentes;
 - ID do chip do rastreador obrigatorio para finalizar OS;
 - historico do cliente com fotos e assinatura de cada OS;
 - financeiro administrativo.

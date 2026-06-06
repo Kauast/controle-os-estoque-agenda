@@ -16,6 +16,7 @@ Use estes perfis no backend e no frontend:
 - `tecnico` so pode acessar OS atribuidas a ele.
 - `vendedor` pode consultar estoque e registrar saidas por venda.
 - `tecnico` e `instrutor_os` nunca alteram estoque diretamente.
+- `tecnico` pode registrar check-in, fotos, assinatura e observacoes somente da propria OS.
 - Baixa de estoque so acontece quando `admin` ou `estoque` confirma retirada de material.
 - Faturamento so pode ser visto por `admin`, exceto quando `users.can_view_financial = true`.
 - Toda alteracao importante deve gerar registro em `audit_logs`.
@@ -50,6 +51,10 @@ POST /estoque/entrada -> admin, estoque
 POST /estoque/saida -> admin, estoque, vendedor
 POST /os -> admin, estoque, instrutor_os
 PATCH /os/:id -> admin, instrutor_os, tecnico da OS com campos limitados
+POST /os/:id/checkin -> tecnico da OS, admin, instrutor_os
+POST /os/:id/fotos -> tecnico da OS, admin, instrutor_os
+POST /os/:id/assinatura -> tecnico da OS, admin, instrutor_os
+POST /os/:id/observacoes -> tecnico da OS, admin, instrutor_os
 DELETE /os/:id -> admin
 POST /os/:id/material -> admin, estoque, instrutor_os, tecnico da OS
 PATCH /material/:id/aprovar -> admin, estoque

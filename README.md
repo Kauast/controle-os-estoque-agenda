@@ -6,6 +6,7 @@ Sistema para controle de ordens de servico, estoque, agenda mensal por equipe, s
 
 - Interface desktop administrativa.
 - Interface mobile para tecnico de campo.
+- Dashboard do tecnico com OS do dia, pendentes, concluidas, agenda, detalhes, historico e produtividade.
 - API Node/Express inicial com login, JWT e permissoes por perfil.
 - Agenda por 5 equipes com arrastar OS.
 - Fluxo de conclusao da OS com 3 fotos e assinatura.
@@ -109,9 +110,10 @@ Entradas e saidas manuais do estoque devem registrar:
 
 Uma OS so pode ser finalizada quando tiver:
 
-1. pelo menos 3 fotos;
-2. assinatura do cliente;
-3. ID do chip do rastreador contabilizado.
+1. atendimento iniciado com check-in;
+2. pelo menos 3 fotos;
+3. assinatura do cliente;
+4. ID do chip do rastreador contabilizado.
 
 ## O que falta para producao
 

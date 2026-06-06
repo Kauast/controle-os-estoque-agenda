@@ -15,6 +15,11 @@ Rotas ja iniciadas:
 - `GET /os`
 - `POST /os`
 - `PATCH /os/:id`
+- `GET /os/:id`
+- `POST /os/:id/checkin`
+- `POST /os/:id/fotos`
+- `POST /os/:id/assinatura`
+- `POST /os/:id/observacoes`
 - `POST /os/:id/material`
 - `PATCH /material/:id/aprovar`
 - `PATCH /material/:id/negar`
@@ -30,8 +35,6 @@ Rotas ja iniciadas:
 
 Rotas ainda pendentes:
 
-- `POST /os/:id/fotos`
-- `POST /os/:id/assinatura`
 - cadastro/edicao completa de produtos;
 - historico do cliente por API;
 - exportacoes CSV/PDF.
@@ -183,6 +186,7 @@ Testar:
 - OS nao finaliza sem 3 fotos;
 - OS nao finaliza sem assinatura;
 - OS nao finaliza sem ID do chip do rastreador contabilizado;
+- OS nao finaliza sem check-in de atendimento;
 - estoque reserva ao aprovar material;
 - estoque baixa somente ao confirmar retirada;
 - historico do cliente mostra fotos e assinatura.

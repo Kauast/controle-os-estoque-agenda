@@ -520,7 +520,14 @@ const completionStatus = document.querySelector(".completion-status");
 const trackerChipInput = document.querySelector(".tracker-chip-input");
 const verifyChipButton = document.querySelector(".verify-chip-button");
 const trackerChipStatus = document.querySelector(".tracker-chip-status");
+const checkinButton = document.querySelector(".checkin-button");
+const checkinStatus = document.querySelector(".checkin-status");
+const desktopCheckinStatus = document.querySelector(".desktop-checkin-status");
+const saveServiceNoteButton = document.querySelector(".save-service-note-button");
+const serviceNotesInput = document.querySelector(".service-notes-input");
+const serviceNoteStatus = document.querySelector(".service-note-status");
 let trackerChipVerified = false;
+let attendanceStarted = false;
 let signatureHasInk = false;
 let isSigning = false;
 let lastSignaturePoint = null;
@@ -532,7 +539,7 @@ function normalizeTrackerChip(value) {
 function updateCompletionState() {
   const capturedPhotos = document.querySelectorAll(".photo-proof.captured").length;
   const hasSignature = signatureBox?.classList.contains("signed");
-  const canFinish = capturedPhotos >= 3 && hasSignature && trackerChipVerified;
+  const canFinish = attendanceStarted && capturedPhotos >= 3 && hasSignature && trackerChipVerified;
 
   if (finishOsButton) {
     finishOsButton.disabled = !canFinish;
@@ -541,6 +548,8 @@ function updateCompletionState() {
   if (completionStatus) {
     if (canFinish) {
       completionStatus.textContent = "Liberado";
+    } else if (!attendanceStarted) {
+      completionStatus.textContent = "Atendimento pendente";
     } else if (capturedPhotos < 3) {
       completionStatus.textContent = `${capturedPhotos}/3 fotos`;
     } else if (!hasSignature) {
@@ -552,6 +561,39 @@ function updateCompletionState() {
     completionStatus.classList.toggle("amber", !canFinish);
     completionStatus.classList.toggle("teal", canFinish);
   }
+}
+
+if (checkinButton) {
+  checkinButton.addEventListener("click", () => {
+    const now = new Date();
+    const time = now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    attendanceStarted = true;
+    checkinButton.textContent = "Atendimento iniciado";
+    checkinButton.classList.add("started");
+
+    if (checkinStatus) {
+      checkinStatus.textContent = `Check-in registrado as ${time}. GPS opcional aguardando permissao.`;
+    }
+
+    if (desktopCheckinStatus) {
+      desktopCheckinStatus.textContent = "Iniciado";
+    }
+
+    updateCompletionState();
+  });
+}
+
+if (saveServiceNoteButton) {
+  saveServiceNoteButton.addEventListener("click", () => {
+    const text = serviceNotesInput?.value.trim();
+
+    if (!text) {
+      serviceNoteStatus.textContent = "Escreva a observacao tecnica antes de salvar.";
+      return;
+    }
+
+    serviceNoteStatus.textContent = "Observacao tecnica salva no historico da OS.";
+  });
 }
 
 photoProofs.forEach((photo) => {

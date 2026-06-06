@@ -289,7 +289,8 @@ h2 {
     "reports reports"
     "profiles profiles"
     "history history"
-    "team team";
+    "team team"
+    "techapp techapp";
   gap: 16px;
 }
 
@@ -969,6 +970,90 @@ h2 {
   padding: 20px;
 }
 
+.technician-app-panel {
+  grid-area: techapp;
+  padding: 20px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+
+.tech-app-desktop-grid {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.tech-app-card,
+.desktop-tech-detail,
+.desktop-tech-os {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-soft);
+}
+
+.tech-app-card {
+  padding: 14px;
+}
+
+.tech-app-card span,
+.tech-app-card small,
+.desktop-tech-detail span,
+.desktop-tech-detail small,
+.desktop-tech-os span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.tech-app-card strong {
+  display: block;
+  margin: 7px 0 4px;
+  font-size: 20px;
+}
+
+.tech-app-desktop-flow {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: minmax(260px, 0.55fr) minmax(0, 1fr);
+  gap: 12px;
+}
+
+.desktop-tech-list {
+  display: grid;
+  gap: 8px;
+}
+
+.desktop-tech-os {
+  min-height: 58px;
+  padding: 10px 12px;
+  color: var(--ink);
+  text-align: left;
+}
+
+.desktop-tech-os.active,
+.desktop-tech-os:hover {
+  border-color: var(--dark);
+  background: #fff;
+}
+
+.desktop-tech-os strong,
+.desktop-tech-os span,
+.desktop-tech-detail strong,
+.desktop-tech-detail span,
+.desktop-tech-detail small {
+  display: block;
+}
+
+.desktop-tech-detail {
+  padding: 14px;
+  display: grid;
+  align-content: start;
+  gap: 7px;
+}
+
 .segmented {
   display: flex;
   padding: 4px;
@@ -1379,6 +1464,12 @@ th {
   }
 
   .tech-status,
+  .tech-dashboard-grid article,
+  .mobile-os-list,
+  .mobile-os-detail,
+  .mobile-tech-notes,
+  .mobile-client-history,
+  .mobile-advanced-tools,
   .mobile-order,
   .mobile-form,
   .mobile-checklist {
@@ -1388,6 +1479,36 @@ th {
   .tech-status strong {
     display: block;
     margin-top: 4px;
+    font-size: 22px;
+  }
+
+  .tech-dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .tech-dashboard-grid article {
+    display: grid;
+    gap: 4px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+  }
+
+  .tech-dashboard-grid span,
+  .mobile-os-row small,
+  .detail-stack span,
+  .mobile-history-list span,
+  .mobile-advanced-tools small,
+  .service-note-status,
+  .checkin-status {
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .tech-dashboard-grid strong {
     font-size: 22px;
   }
 
@@ -1417,6 +1538,38 @@ th {
     font-size: 24px;
   }
 
+  .mobile-os-list {
+    display: grid;
+    gap: 8px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+  }
+
+  .mobile-os-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 6px 10px;
+    align-items: center;
+    min-height: 68px;
+    padding: 11px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--panel-soft);
+    color: var(--ink);
+    text-align: left;
+  }
+
+  .mobile-os-row.active {
+    border-color: var(--dark);
+    background: #fff;
+  }
+
+  .mobile-os-row small {
+    grid-column: 1 / -1;
+  }
+
   .mobile-order p {
     margin-bottom: 14px;
     color: var(--muted);
@@ -1439,12 +1592,21 @@ th {
     grid-template-columns: 1fr 1fr 1.25fr;
   }
 
-  .mobile-actions button {
+  .mobile-actions button,
+  .mobile-actions a {
     padding-inline: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
   }
 
   .mobile-form,
-  .mobile-checklist {
+  .mobile-checklist,
+  .mobile-os-detail,
+  .mobile-tech-notes,
+  .mobile-client-history,
+  .mobile-advanced-tools {
     display: grid;
     gap: 12px;
   }
@@ -1463,6 +1625,40 @@ th {
     gap: 7px;
     color: var(--muted);
     font-size: 13px;
+  }
+
+  .detail-stack,
+  .mobile-history-list {
+    display: grid;
+    gap: 8px;
+  }
+
+  .detail-stack div,
+  .mobile-history-list article {
+    display: grid;
+    gap: 4px;
+    padding: 11px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--panel-soft);
+  }
+
+  .service-notes-input {
+    width: 100%;
+    resize: vertical;
+    min-height: 96px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 12px;
+    background: #fff;
+    color: var(--ink);
+    font: inherit;
+  }
+
+  .advanced-tool-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
   }
 
   select,
@@ -1779,7 +1975,8 @@ th {
       "reports"
       "profiles"
       "history"
-      "team";
+      "team"
+      "techapp";
   }
 
   .finance-summary {
@@ -1791,8 +1988,13 @@ th {
   }
 
   .inventory-layout,
-  .inventory-movement-grid {
+  .inventory-movement-grid,
+  .tech-app-desktop-flow {
     grid-template-columns: 1fr;
+  }
+
+  .tech-app-desktop-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .inventory-selected-card {

@@ -95,12 +95,15 @@ CREATE TABLE service_orders (
   priority text NOT NULL DEFAULT 'normal' CHECK (priority IN ('baixa', 'normal', 'alta')),
   opened_at timestamptz NOT NULL DEFAULT now(),
   due_at timestamptz,
+  started_at timestamptz,
+  checkin_location text,
   completed_at timestamptz,
   service_value numeric(12,2) NOT NULL DEFAULT 0 CHECK (service_value >= 0),
   payment_method text,
   payment_status text NOT NULL DEFAULT 'pendente' CHECK (payment_status IN ('pendente', 'parcial', 'pago', 'cancelado')),
   tracker_chip_id text,
   tracker_chip_verified_at timestamptz,
+  technician_notes text,
   notes text,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
@@ -175,6 +178,14 @@ CREATE TABLE service_order_instructions (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
+CREATE TABLE service_order_notes (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  service_order_id uuid NOT NULL REFERENCES service_orders(id) ON DELETE CASCADE,
+  user_id uuid REFERENCES users(id) ON DELETE SET NULL,
+  note text NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
 CREATE TABLE technician_status (
   technician_id uuid PRIMARY KEY REFERENCES technicians(id) ON DELETE CASCADE,
   current_team_id uuid REFERENCES teams(id) ON DELETE SET NULL,
@@ -214,6 +225,7 @@ CREATE INDEX idx_products_company_active ON products(company_id, active);
 CREATE INDEX idx_material_requests_status ON material_requests(status, requested_at);
 CREATE INDEX idx_stock_movements_product_date ON stock_movements(product_id, created_at);
 CREATE INDEX idx_service_order_photos_order ON service_order_photos(service_order_id, photo_type);
+CREATE INDEX idx_service_order_notes_order ON service_order_notes(service_order_id, created_at);
 CREATE INDEX idx_audit_logs_entity ON audit_logs(entity_type, entity_id, created_at);
 
 CREATE OR REPLACE FUNCTION require_stock_or_admin(user_id uuid)
@@ -323,8 +335,8 @@ BEGIN
       WHERE service_order_id = NEW.id
     ) INTO has_signature;
 
-    IF photo_count < 3 OR NOT has_signature OR NEW.tracker_chip_id IS NULL OR btrim(NEW.tracker_chip_id) = '' THEN
-      RAISE EXCEPTION 'OS cannot be completed without at least 3 photos, client signature and tracker chip id';
+    IF NEW.started_at IS NULL OR photo_count < 3 OR NOT has_signature OR NEW.tracker_chip_id IS NULL OR btrim(NEW.tracker_chip_id) = '' THEN
+      RAISE EXCEPTION 'OS cannot be completed without check-in, at least 3 photos, client signature and tracker chip id';
     END IF;
 
     NEW.completed_at = COALESCE(NEW.completed_at, now());

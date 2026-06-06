@@ -777,6 +777,62 @@
               <small class="selected-team-copy">Bruno, Leo · Em atendimento · OS-1048</small>
             </div>
           </article>
+
+          <article class="technician-app-panel">
+            <div class="section-heading">
+              <div>
+                <span>Aplicativo do tecnico</span>
+                <h2>Execucao de OS em campo</h2>
+              </div>
+              <span class="pill teal">Mobile + PC</span>
+            </div>
+
+            <div class="tech-app-desktop-grid">
+              <section class="tech-app-card">
+                <span>OS do dia</span>
+                <strong>4</strong>
+                <small>1 alta prioridade, 2 pendentes, 1 concluida</small>
+              </section>
+              <section class="tech-app-card">
+                <span>Check-in</span>
+                <strong class="desktop-checkin-status">Pendente</strong>
+                <small>Data, hora e GPS opcional</small>
+              </section>
+              <section class="tech-app-card">
+                <span>Conclusao</span>
+                <strong>Fotos + assinatura</strong>
+                <small>Bloqueada sem 3 fotos, assinatura e ID CHIP</small>
+              </section>
+              <section class="tech-app-card">
+                <span>Produtividade</span>
+                <strong>1h42 medio</strong>
+                <small>7 OS finalizadas na semana</small>
+              </section>
+            </div>
+
+            <div class="tech-app-desktop-flow">
+              <div class="desktop-tech-list">
+                <button class="desktop-tech-os active" type="button">
+                  <strong>OS-1048</strong>
+                  <span>Alpha Condominio - Alta - 09:30</span>
+                </button>
+                <button class="desktop-tech-os" type="button">
+                  <strong>OS-1050</strong>
+                  <span>Clinica Santa Clara - Pendente - 14:00</span>
+                </button>
+                <button class="desktop-tech-os" type="button">
+                  <strong>OS-1051</strong>
+                  <span>Residencial Norte - Agendada - 16:30</span>
+                </button>
+              </div>
+              <div class="desktop-tech-detail">
+                <strong>OS-1048 - Alpha Condominio</strong>
+                <span>Rua das Flores, 120 - (11) 4000-1000</span>
+                <small>Historico: 2 OS anteriores, fotos e assinaturas disponiveis.</small>
+                <small>Materiais previstos: Fonte 12V 2A, Sensor magnetico.</small>
+              </div>
+            </div>
+          </article>
         </section>
       </main>
 
@@ -798,10 +854,47 @@
           <button class="primary-button">Iniciar rota</button>
         </section>
 
+        <section class="tech-dashboard-grid" aria-label="Resumo do tecnico">
+          <article>
+            <span>OS do dia</span>
+            <strong>4</strong>
+          </article>
+          <article>
+            <span>Pendentes</span>
+            <strong>2</strong>
+          </article>
+          <article>
+            <span>Concluidas</span>
+            <strong>1</strong>
+          </article>
+          <article>
+            <span>Tempo medio</span>
+            <strong>1h42</strong>
+          </article>
+        </section>
+
         <section class="mobile-tabs" aria-label="Filtro de OS">
           <button class="active">Agora</button>
           <button>Proximas</button>
           <button>Concluidas</button>
+        </section>
+
+        <section class="mobile-os-list" aria-label="Lista de ordens de servico">
+          <button class="mobile-os-row active" type="button">
+            <span class="pill red">Alta</span>
+            <strong>OS-1048</strong>
+            <small>Alpha Condominio - Rua das Flores, 120 - 09:30 - Em andamento</small>
+          </button>
+          <button class="mobile-os-row" type="button">
+            <span class="pill amber">Pendente</span>
+            <strong>OS-1050</strong>
+            <small>Clinica Santa Clara - Rua Saude, 88 - 14:00 - Material solicitado</small>
+          </button>
+          <button class="mobile-os-row" type="button">
+            <span class="pill teal">Concluida</span>
+            <strong>OS-0987</strong>
+            <small>Mercado Central - Av. Central, 410 - Ontem - Finalizada</small>
+          </button>
         </section>
 
         <article class="mobile-order active-order">
@@ -812,15 +905,47 @@
           <h2>Alpha Condominio</h2>
           <p>Portao automatico sem resposta. Verificar central, fonte e sensores.</p>
           <div class="mobile-details">
-            <span>09:30</span>
-            <span>Rua das Flores, 120</span>
+            <span>Data e horario: 05/06 - 09:30</span>
+            <span>Endereco: Rua das Flores, 120</span>
+            <span>Telefone: (11) 4000-1000</span>
+            <span>Status: Em andamento</span>
           </div>
           <div class="mobile-actions">
-            <button class="secondary-button">Ligar</button>
-            <button class="secondary-button">Rota</button>
-            <button class="primary-button">Cheguei</button>
+            <a class="secondary-button" href="tel:+551140001000">Ligar</a>
+            <a class="secondary-button" href="https://www.google.com/maps/search/?api=1&query=Rua%20das%20Flores%20120" target="_blank" rel="noreferrer">Rota</a>
+            <a class="secondary-button" href="https://wa.me/551140001000" target="_blank" rel="noreferrer">WhatsApp</a>
           </div>
+          <button class="primary-button wide checkin-button" type="button">Iniciar Atendimento</button>
+          <small class="checkin-status">Atendimento ainda nao iniciado</small>
         </article>
+
+        <section class="mobile-os-detail">
+          <div class="section-heading compact">
+            <div>
+              <span>Detalhes da OS</span>
+              <h2>Cliente, historico e materiais</h2>
+            </div>
+            <span class="pill amber">2 pendencias</span>
+          </div>
+          <div class="detail-stack">
+            <div>
+              <strong>Dados do cliente</strong>
+              <span>Alpha Condominio - Sindico Joao - (11) 4000-1000</span>
+            </div>
+            <div>
+              <strong>Historico do cliente</strong>
+              <span>OS-0987 concluida com troca de sensor. Fotos e assinatura arquivadas.</span>
+            </div>
+            <div>
+              <strong>Observacoes da OS</strong>
+              <span>Cliente solicitou prioridade. Verificar central, fonte e sensores antes de liberar.</span>
+            </div>
+            <div>
+              <strong>Materiais previstos</strong>
+              <span>Fonte 12V 2A, Sensor magnetico, Controle remoto TX.</span>
+            </div>
+          </div>
+        </section>
 
         <section class="mobile-form">
           <div class="section-heading compact">
@@ -880,6 +1005,19 @@
           </div>
         </section>
 
+        <section class="mobile-tech-notes">
+          <div class="section-heading compact">
+            <div>
+              <span>Observacoes tecnicas</span>
+              <h2>Servico executado</h2>
+            </div>
+            <span class="pill teal">Historico</span>
+          </div>
+          <textarea class="service-notes-input" rows="4" placeholder="Descreva o que foi executado, testes feitos e orientacoes ao cliente."></textarea>
+          <button class="secondary-button wide save-service-note-button" type="button">Salvar observacao</button>
+          <small class="service-note-status">As observacoes ficam vinculadas ao historico da OS.</small>
+        </section>
+
         <section class="mobile-checklist">
           <div class="section-heading compact">
             <div>
@@ -928,6 +1066,43 @@
           </div>
 
           <button class="primary-button wide finish-os-button" disabled>Concluir OS</button>
+        </section>
+
+        <section class="mobile-client-history">
+          <div class="section-heading compact">
+            <div>
+              <span>Historico do cliente</span>
+              <h2>OS anteriores</h2>
+            </div>
+            <span class="pill teal">2 OS</span>
+          </div>
+          <div class="mobile-history-list">
+            <article>
+              <strong>OS-0987 - Finalizada</strong>
+              <span>Troca de sensor magnetico. 3 fotos e assinatura do Sindico.</span>
+            </article>
+            <article>
+              <strong>OS-0912 - Finalizada</strong>
+              <span>Preventiva do portao. Orientado cliente sobre bateria.</span>
+            </article>
+          </div>
+        </section>
+
+        <section class="mobile-advanced-tools">
+          <div class="section-heading compact">
+            <div>
+              <span>Recursos avancados</span>
+              <h2>Rastreabilidade em campo</h2>
+            </div>
+            <span class="pill amber">Offline pronto</span>
+          </div>
+          <div class="advanced-tool-grid">
+            <button class="secondary-button" type="button">Scanner QR OS</button>
+            <button class="secondary-button" type="button">Sincronizar</button>
+            <button class="secondary-button" type="button">Chat supervisor</button>
+            <button class="secondary-button" type="button">Auditoria</button>
+          </div>
+          <small>Novas OS, fotos, GPS e acoes ficam registradas para sincronizacao e auditoria.</small>
         </section>
 
         <nav class="bottom-nav" aria-label="Menu do tecnico">
