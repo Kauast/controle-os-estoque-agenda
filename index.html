@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Controle OS e Estoque</title>
-    <link rel="stylesheet" href="./styles.css?v=icons-1" />
+    <link rel="stylesheet" href="./styles.css?v=tracking-access-1" />
   </head>
   <body>
     <div class="app-shell">
@@ -24,7 +24,7 @@
           <button class="stock-only">Estoque</button>
           <button>Clientes</button>
           <button>Equipe</button>
-          <button>Rastreamento</button>
+          <button class="tracking-only">Rastreamento</button>
           <button data-admin-only="true">Financeiro</button>
           <button>Relatorios</button>
         </nav>
@@ -1046,7 +1046,7 @@
           </div>
         </section>
 
-        <section class="mobile-tracking-panel">
+        <section class="mobile-tracking-panel tracking-only">
           <div class="section-heading compact">
             <div>
               <span>Rastreamento</span>
@@ -1264,7 +1264,7 @@
         <nav class="bottom-nav" aria-label="Menu do tecnico">
           <button class="active">OS</button>
           <button>Agenda</button>
-          <button>Rota</button>
+          <button class="tracking-only">Rota</button>
           <button class="stock-only">Estoque</button>
           <button>Perfil</button>
         </nav>
@@ -1383,6 +1383,6 @@
     </dialog>
 
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-    <script src="./app.js?v=icons-1"></script>
+    <script src="./app.js?v=tracking-access-1"></script>
   </body>
 </html>

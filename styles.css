@@ -52,6 +52,10 @@ body.role-atendimento .stock-only {
   display: none !important;
 }
 
+body:not(.role-admin):not(.role-atendimento) .tracking-only {
+  display: none !important;
+}
+
 button,
 input,
 select {
