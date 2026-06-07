@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Controle OS e Estoque</title>
-    <link rel="stylesheet" href="./styles.css?v=simple-ux-1" />
+    <link rel="stylesheet" href="./styles.css?v=guided-flow-1" />
   </head>
   <body>
     <div class="app-shell">
@@ -24,8 +24,8 @@
           <button class="stock-only">Estoque</button>
           <button class="client-access-only">Clientes</button>
           <button class="team-admin-nav">Equipe</button>
-          <button class="tracking-only">Rastreamento</button>
-          <button data-admin-only="true">Financeiro</button>
+          <button class="tracking-only">Localizacao</button>
+          <button data-admin-only="true">Valores</button>
           <button class="reports-access-only">Relatorios</button>
         </nav>
 
@@ -40,7 +40,7 @@
         <header class="topbar">
           <div>
             <p>Gestao operacional</p>
-            <h1>Painel operacional</h1>
+            <h1>Visao do dia</h1>
           </div>
           <div class="topbar-actions">
             <label class="role-switch">
@@ -82,7 +82,7 @@
             <small>Itens abaixo do minimo</small>
           </article>
           <article class="metric-card">
-            <span>SLA no prazo</span>
+            <span>Prazo em dia</span>
             <strong>92%</strong>
             <small>Ultimos 30 dias</small>
           </article>
@@ -98,7 +98,7 @@
             <div class="section-heading">
               <div>
                 <span>Agenda das equipes</span>
-                <h2>Arraste a OS para a equipe responsavel</h2>
+                <h2>OS do dia e calendario mensal</h2>
               </div>
               <div class="segmented">
                 <button class="active">Hoje</button>
@@ -113,7 +113,7 @@
                   <span>Planejamento mensal</span>
                   <strong class="monthly-schedule-title">OS agendadas do mes</strong>
                 </div>
-                <button class="primary-button monthly-schedule-button" type="button">Agendar mes</button>
+                <button class="primary-button monthly-schedule-button" type="button">Agendar OS</button>
               </div>
               <div class="monthly-schedule-list" aria-label="OS agendadas no mes"></div>
             </div>
@@ -214,6 +214,17 @@
                   </div>
                 </article>
               </section>
+            </div>
+
+            <div class="month-calendar-card" aria-label="Calendario mensal das ordens de servico">
+              <div class="month-calendar-head">
+                <div>
+                  <span>Calendario do mes</span>
+                  <strong class="month-calendar-title">Junho 2026</strong>
+                </div>
+                <span class="pill teal month-calendar-count">0 OS</span>
+              </div>
+              <div class="month-calendar-grid"></div>
             </div>
           </article>
 
@@ -417,7 +428,7 @@
             <section class="stock-history-panel">
               <div class="form-section-title">
                 <span>Historico</span>
-                <strong>Movimentacoes recentes</strong>
+                <strong>Entradas e saidas recentes</strong>
               </div>
               <div class="stock-history-list"></div>
             </section>
@@ -427,7 +438,7 @@
             <div class="section-heading">
               <div>
                 <span>Somente administrador</span>
-                <h2>Financeiro mensal</h2>
+                <h2>Valores mensais</h2>
               </div>
               <span class="pill dark-pill">Acesso restrito</span>
             </div>
@@ -792,7 +803,7 @@
           <article class="tracking-panel" id="rastreamento-equipes" aria-label="Rastreamento das equipes em campo">
             <div class="section-heading">
               <div>
-                <span>Rastreamento</span>
+                <span>Localizacao</span>
                 <h2>Localizacao das equipes em campo</h2>
               </div>
               <div class="tracking-actions">
@@ -1104,7 +1115,7 @@
         <section class="mobile-tracking-panel tracking-only">
           <div class="section-heading compact">
             <div>
-              <span>Rastreamento</span>
+              <span>Localizacao</span>
               <h2>Localizacao da equipe</h2>
             </div>
             <button class="ghost-button refresh-tracking-button" type="button">Atualizar</button>
@@ -1212,6 +1223,13 @@
             <span class="pill amber completion-status">Pendente</span>
           </div>
 
+          <div class="completion-requirements" aria-label="Pendencias para concluir a OS">
+            <span data-requirement="checkin">Iniciar atendimento</span>
+            <span data-requirement="photos">3 fotos</span>
+            <span data-requirement="signature">Assinatura</span>
+            <span data-requirement="chip">ID do chip</span>
+          </div>
+
           <div class="photo-proof-grid" aria-label="Fotos obrigatorias do servico">
             <button class="photo-proof captured" data-photo="1">
               <span>Foto 1</span>
@@ -1247,8 +1265,8 @@
               ID CHIP
               <input class="tracker-chip-input" type="text" inputmode="text" autocomplete="off" placeholder="8955 0400 1234 5678 9012" />
             </label>
-            <button class="secondary-button verify-chip-button wide" type="button">Contabilizar ID CHIP</button>
-            <small class="tracker-chip-status">ID CHIP pendente</small>
+            <button class="secondary-button verify-chip-button wide" type="button">Confirmar ID do chip</button>
+            <small class="tracker-chip-status">ID do chip pendente</small>
           </div>
 
           <button class="primary-button wide finish-os-button" disabled>Concluir OS</button>
@@ -1286,7 +1304,7 @@
             <button class="secondary-button scan-os-qr-button" type="button">Scanner QR OS</button>
             <button class="secondary-button sync-offline-button" type="button">Sincronizar</button>
             <button class="secondary-button chat-supervisor-button" type="button">Chat supervisor</button>
-            <button class="secondary-button audit-button" type="button">Auditoria</button>
+            <button class="secondary-button audit-button" type="button">Historico de acoes</button>
           </div>
           <div class="advanced-status-card">
             <strong class="offline-sync-status">Fila local vazia</strong>
@@ -1330,30 +1348,37 @@
       <form class="new-os-form" method="dialog">
         <div class="dialog-head">
           <div>
-            <span>Cadastro operacional</span>
+            <span>Cadastro guiado</span>
             <h2>Nova OS</h2>
           </div>
           <button class="icon-button close-new-os" type="button" aria-label="Fechar">×</button>
         </div>
 
+        <div class="new-os-steps" aria-label="Etapas para cadastrar OS">
+          <span class="active">1 Cliente</span>
+          <span>2 Servico</span>
+          <span>3 Agenda</span>
+          <span>4 Revisao</span>
+        </div>
+
         <div class="form-grid two">
-          <label>
+          <label data-new-os-step="1">
             Cliente
             <input class="new-os-client" type="text" placeholder="Nome do cliente" required />
           </label>
-          <label>
+          <label data-new-os-step="4">
             Numero da OS
             <input class="new-os-code" type="text" placeholder="Gerado automaticamente" />
           </label>
-          <label>
+          <label data-new-os-step="2">
             Descricao
             <input class="new-os-description" type="text" placeholder="Servico solicitado" required />
           </label>
-          <label>
+          <label data-new-os-step="3">
             Horario
             <input class="new-os-time" type="time" value="09:00" required />
           </label>
-          <label>
+          <label data-new-os-step="3">
             Equipe
             <select class="new-os-team" required>
               <option>Sem equipe</option>
@@ -1364,7 +1389,7 @@
               <option>Equipe 5</option>
             </select>
           </label>
-          <label>
+          <label data-new-os-step="2">
             Prioridade
             <select class="new-os-priority" required>
               <option value="normal">Normal</option>
@@ -1372,7 +1397,11 @@
               <option value="high">Alta</option>
             </select>
           </label>
-          <label>
+          <div class="new-os-review form-span" data-new-os-step="4">
+            <strong>Revise antes de salvar</strong>
+            <small>Confira cliente, servico, equipe, horario e prioridade. Depois clique em Adicionar OS.</small>
+          </div>
+          <label data-new-os-step="4">
             Status
             <select class="new-os-status" required>
               <option value="pending">Pendente</option>
@@ -1380,16 +1409,18 @@
               <option value="completed">Concluida</option>
             </select>
           </label>
-          <label>
+          <label data-new-os-step="3">
             Tecnico
             <input class="new-os-tech" type="text" placeholder="Responsavel" />
           </label>
         </div>
 
         <div class="dialog-actions">
-          <small class="new-os-status-copy">A OS entra na fila e, se tiver equipe, aparece na agenda da equipe.</small>
+          <small class="new-os-status-copy">Etapa 1 de 4: informe o cliente.</small>
+          <button class="secondary-button new-os-prev-button" type="button">Voltar</button>
+          <button class="secondary-button new-os-next-button" type="button">Proximo</button>
           <button class="secondary-button close-new-os" type="button">Cancelar</button>
-          <button class="primary-button" type="submit">Adicionar OS</button>
+          <button class="primary-button new-os-submit-button" type="submit">Adicionar OS</button>
         </div>
       </form>
     </dialog>
@@ -1505,6 +1536,6 @@
     </dialog>
 
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-    <script src="./app.js?v=simple-ux-1"></script>
+    <script src="./app.js?v=guided-flow-1"></script>
   </body>
 </html>

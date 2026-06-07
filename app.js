@@ -40,7 +40,9 @@ const buttonIconMap = {
   clientes: "users",
   equipe: "user-cog",
   rastreamento: "map-pin",
+  localizacao: "map-pin",
   financeiro: "dollar-sign",
+  valores: "dollar-sign",
   relatorios: "bar-chart-3",
   os: "clipboard-list",
   perfil: "user",
@@ -83,15 +85,19 @@ const buttonIconMap = {
   limpar: "eraser",
   "confirmar assinatura": "pen-line",
   "contabilizar id chip": "badge-check",
+  "confirmar id do chip": "badge-check",
   "concluir os": "check-circle-2",
   "scanner qr os": "qr-code",
   sincronizar: "refresh-cw",
   "chat supervisor": "message-square",
   auditoria: "shield-check",
+  "historico de acoes": "shield-check",
   "abrir os": "external-link",
   "enviar mensagem": "send",
   cancelar: "x",
   "adicionar os": "plus-circle",
+  proximo: "arrow-right",
+  voltar: "arrow-left",
   "agendar mes": "calendar-plus",
   "agendar os": "calendar-plus",
   entrar: "log-in"
@@ -106,7 +112,7 @@ const iconOnlyMap = {
 const roleViewCopy = {
   admin: {
     context: "Gestao geral",
-    title: "Painel operacional",
+    title: "Visao do dia",
     summary: "Visao completa da operacao",
     detail: "Agenda, estoque, equipes e relatorios"
   },
@@ -126,7 +132,7 @@ const roleViewCopy = {
     context: "Tecnico",
     title: "Minhas OS",
     summary: "OS da equipe logada",
-    detail: "Atendimentos, fotos, assinatura e ID CHIP"
+    detail: "Atendimentos, fotos, assinatura e ID do chip"
   }
 };
 
@@ -292,6 +298,7 @@ function setActiveTeam(team, shouldRender = true) {
     renderMobileOrders?.();
     renderTeamReport?.();
     renderMonthlySchedule?.();
+    renderMonthCalendar?.();
     renderTracking?.();
   }
 }
@@ -422,6 +429,7 @@ function refreshAccessControls() {
     renderMobileOrders?.();
     renderTeamReport?.();
     renderMonthlySchedule?.();
+    renderMonthCalendar?.();
     renderTracking?.();
   }
 
@@ -452,6 +460,7 @@ if (roleSelect) {
     renderMobileOrders?.();
     renderTeamReport?.();
     renderMonthlySchedule?.();
+    renderMonthCalendar?.();
     renderTracking?.();
   });
 }
@@ -469,7 +478,12 @@ const desktopSections = {
 };
 
 function getDesktopSectionKey(button) {
-  return button.textContent.trim().toLowerCase();
+  const key = button.textContent.trim().toLowerCase();
+  const aliases = {
+    localizacao: "rastreamento",
+    valores: "financeiro"
+  };
+  return aliases[key] || key;
 }
 
 function canAccessTracking() {
@@ -1171,12 +1185,20 @@ const newOsButton = document.querySelector(".new-os-button");
 const newOsDialog = document.querySelector(".new-os-dialog");
 const newOsForm = document.querySelector(".new-os-form");
 const newOsStatusCopy = document.querySelector(".new-os-status-copy");
+const newOsStepItems = newOsForm?.querySelectorAll(".new-os-steps span") || [];
+const newOsStepFields = newOsForm?.querySelectorAll("[data-new-os-step]") || [];
+const newOsPrevButton = document.querySelector(".new-os-prev-button");
+const newOsNextButton = document.querySelector(".new-os-next-button");
+const newOsSubmitButton = document.querySelector(".new-os-submit-button");
 const monthlyScheduleButton = document.querySelector(".monthly-schedule-button");
 const monthlyScheduleDialog = document.querySelector(".monthly-schedule-dialog");
 const monthlyScheduleForm = document.querySelector(".monthly-schedule-form");
 const monthlyScheduleList = document.querySelector(".monthly-schedule-list");
 const monthlyScheduleTitle = document.querySelector(".monthly-schedule-title");
 const monthlyScheduleStatus = document.querySelector(".monthly-schedule-status");
+const monthCalendarGrid = document.querySelector(".month-calendar-grid");
+const monthCalendarTitle = document.querySelector(".month-calendar-title");
+const monthCalendarCount = document.querySelector(".month-calendar-count");
 const teamReportBody = document.querySelector(".team-report-body");
 const teamReportFilter = document.querySelector(".team-report-filter");
 const completedTeamCount = document.querySelector(".completed-team-count");
@@ -1227,6 +1249,22 @@ function getMonthLabel(monthValue) {
   const date = new Date(Number(year), Number(month) - 1, 1);
   if (Number.isNaN(date.getTime())) return monthValue;
   return date.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+}
+
+function getOrderCalendarDate(order) {
+  if (order.scheduledDate) return order.scheduledDate;
+  const fallbackDays = {
+    "OS-1048": "05",
+    "OS-1049": "05",
+    "OS-1050": "05",
+    "OS-1051": "07",
+    "OS-1052": "06",
+    "OS-1053": "09",
+    "OS-1054": "12",
+    "OS-1055": "18"
+  };
+  const day = fallbackDays[order.code];
+  return day ? `${getCurrentMonthValue()}-${day}` : "";
 }
 
 function canSeeAllOrders() {
@@ -1440,6 +1478,57 @@ function renderMonthlySchedule() {
   }).join("");
 }
 
+function renderMonthCalendar() {
+  if (!monthCalendarGrid) return;
+
+  const monthValue = document.querySelector(".monthly-schedule-month")?.value || getCurrentMonthValue();
+  const [yearText, monthText] = monthValue.split("-");
+  const year = Number(yearText);
+  const monthIndex = Number(monthText) - 1;
+
+  if (!Number.isFinite(year) || !Number.isFinite(monthIndex)) return;
+
+  const firstDay = new Date(year, monthIndex, 1);
+  const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+  const startOffset = firstDay.getDay();
+  const orders = getVisibleServiceOrders().filter((order) => getOrderCalendarDate(order).startsWith(monthValue));
+
+  if (monthCalendarTitle) {
+    monthCalendarTitle.textContent = getMonthLabel(monthValue);
+  }
+
+  if (monthCalendarCount) {
+    monthCalendarCount.textContent = `${orders.length} OS`;
+  }
+
+  const weekDays = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
+  const cells = weekDays.map((day) => `<div class="month-calendar-weekday">${day}</div>`);
+
+  for (let i = 0; i < startOffset; i += 1) {
+    cells.push('<div class="month-calendar-day muted" aria-hidden="true"></div>');
+  }
+
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    const dateValue = `${monthValue}-${String(day).padStart(2, "0")}`;
+    const dayOrders = orders.filter((order) => getOrderCalendarDate(order) === dateValue);
+    const hasHigh = dayOrders.some((order) => order.priority === "high");
+    const hasWarning = dayOrders.some((order) => order.priority === "warning");
+    const tone = hasHigh ? "high" : hasWarning ? "warning" : dayOrders.length ? "busy" : "";
+    const preview = dayOrders.slice(0, 2).map((order) => `
+      <small>${escapeHtml(order.code)} ${escapeHtml(order.team || "")}</small>
+    `).join("");
+
+    cells.push(`
+      <button class="month-calendar-day ${tone}" type="button" data-calendar-date="${dateValue}" aria-label="${dayOrders.length} OS em ${formatDateShort(dateValue)}">
+        <strong>${day}</strong>
+        ${dayOrders.length ? `<span>${dayOrders.length} OS</span>${preview}` : "<span>Livre</span>"}
+      </button>
+    `);
+  }
+
+  monthCalendarGrid.innerHTML = cells.join("");
+}
+
 function nextOrderCode() {
   const highest = serviceOrders.reduce((max, order) => {
     const number = Number(order.code.replace(/\D/g, ""));
@@ -1459,15 +1548,69 @@ function addServiceOrder(order) {
   renderMobileOrders();
   renderTeamReport();
   renderMonthlySchedule();
+  renderMonthCalendar();
   renderTracking?.();
 }
 
 teamReportFilter?.addEventListener("change", renderTeamReport);
 
+let newOsStep = 1;
+const newOsStepCopy = {
+  1: "Etapa 1 de 4: informe o cliente.",
+  2: "Etapa 2 de 4: descreva o servico e a prioridade.",
+  3: "Etapa 3 de 4: escolha equipe, tecnico e horario.",
+  4: "Etapa 4 de 4: revise e salve a OS."
+};
+
+function renderNewOsStep() {
+  newOsStepFields.forEach((field) => {
+    field.hidden = Number(field.dataset.newOsStep) !== newOsStep;
+  });
+  newOsStepItems.forEach((item, index) => {
+    item.classList.toggle("active", index + 1 === newOsStep);
+    item.classList.toggle("done", index + 1 < newOsStep);
+  });
+  if (newOsStatusCopy) newOsStatusCopy.textContent = newOsStepCopy[newOsStep];
+  if (newOsPrevButton) newOsPrevButton.hidden = newOsStep === 1;
+  if (newOsNextButton) newOsNextButton.hidden = newOsStep === 4;
+  if (newOsSubmitButton) newOsSubmitButton.hidden = newOsStep !== 4;
+}
+
+function setNewOsStep(step) {
+  newOsStep = Math.max(1, Math.min(4, step));
+  renderNewOsStep();
+}
+
+function validateNewOsStep() {
+  const requiredByStep = {
+    1: [".new-os-client"],
+    2: [".new-os-description"],
+    3: [".new-os-time", ".new-os-team"]
+  };
+  const requiredFields = requiredByStep[newOsStep] || [];
+  const emptyField = requiredFields
+    .map((selector) => newOsForm?.querySelector(selector))
+    .find((field) => field && !String(field.value || "").trim());
+
+  if (!emptyField) return true;
+
+  if (newOsStatusCopy) {
+    newOsStatusCopy.textContent = "Preencha o campo desta etapa antes de continuar.";
+  }
+  emptyField.focus();
+  return false;
+}
+
 newOsButton?.addEventListener("click", () => {
   const codeInput = document.querySelector(".new-os-code");
   if (codeInput && !codeInput.value.trim()) codeInput.value = nextOrderCode();
+  setNewOsStep(1);
   newOsDialog?.showModal();
+});
+
+newOsPrevButton?.addEventListener("click", () => setNewOsStep(newOsStep - 1));
+newOsNextButton?.addEventListener("click", () => {
+  if (validateNewOsStep()) setNewOsStep(newOsStep + 1);
 });
 
 monthlyScheduleButton?.addEventListener("click", () => {
@@ -1494,6 +1637,7 @@ document.querySelector(".monthly-schedule-month")?.addEventListener("change", (e
     dateInput.value = `${event.target.value}-01`;
   }
   renderMonthlySchedule();
+  renderMonthCalendar();
 });
 
 document.querySelectorAll(".close-new-os").forEach((button) => {
@@ -1570,6 +1714,7 @@ newOsForm?.addEventListener("submit", (event) => {
   newOsStatusCopy.textContent = `${code} adicionada na fila.`;
   newOsForm.reset();
   codeInput.value = nextOrderCode();
+  setNewOsStep(1);
   newOsDialog?.close();
 });
 
@@ -1701,6 +1846,7 @@ const clearSignatureButton = document.querySelector(".clear-signature-button");
 const confirmSignatureButton = document.querySelector(".confirm-signature-button");
 const finishOsButton = document.querySelector(".finish-os-button");
 const completionStatus = document.querySelector(".completion-status");
+const completionRequirementItems = document.querySelectorAll("[data-requirement]");
 const trackerChipInput = document.querySelector(".tracker-chip-input");
 const verifyChipButton = document.querySelector(".verify-chip-button");
 const trackerChipStatus = document.querySelector(".tracker-chip-status");
@@ -1756,10 +1902,22 @@ function updateCompletionState() {
   const capturedPhotos = document.querySelectorAll(".photo-proof.captured").length;
   const hasSignature = signatureBox?.classList.contains("signed");
   const canFinish = attendanceStarted && capturedPhotos >= 3 && hasSignature && trackerChipVerified;
+  const requirementState = {
+    checkin: attendanceStarted,
+    photos: capturedPhotos >= 3,
+    signature: hasSignature,
+    chip: trackerChipVerified
+  };
 
   if (finishOsButton) {
     finishOsButton.disabled = !canFinish;
   }
+
+  completionRequirementItems.forEach((item) => {
+    const done = Boolean(requirementState[item.dataset.requirement]);
+    item.classList.toggle("done", done);
+    item.classList.toggle("pending", !done);
+  });
 
   if (completionStatus) {
     if (canFinish) {
@@ -1771,7 +1929,7 @@ function updateCompletionState() {
     } else if (!hasSignature) {
       completionStatus.textContent = "Assinatura pendente";
     } else {
-      completionStatus.textContent = "ID CHIP pendente";
+      completionStatus.textContent = "ID do chip pendente";
     }
 
     completionStatus.classList.toggle("amber", !canFinish);
@@ -1988,7 +2146,7 @@ if (trackerChipInput) {
     trackerChipInput.classList.remove("verified");
 
     if (trackerChipStatus) {
-      trackerChipStatus.textContent = "Contabilize o ID CHIP";
+      trackerChipStatus.textContent = "Confirme o ID do chip";
       trackerChipStatus.classList.remove("verified", "error");
     }
 
@@ -2002,7 +2160,7 @@ if (verifyChipButton) {
 
     if (chipId.length < 10) {
       trackerChipVerified = false;
-      trackerChipStatus.textContent = "Informe o ID CHIP completo";
+      trackerChipStatus.textContent = "Informe o ID do chip completo";
       trackerChipStatus.classList.add("error");
       trackerChipStatus.classList.remove("verified");
       trackerChipInput?.focus();
@@ -2012,12 +2170,12 @@ if (verifyChipButton) {
 
     trackerChipVerified = true;
     trackerChipInput.classList.add("verified");
-    trackerChipStatus.textContent = `ID CHIP contabilizado: ${trackerChipInput.value.trim()}`;
+    trackerChipStatus.textContent = `ID do chip confirmado: ${trackerChipInput.value.trim()}`;
     trackerChipStatus.classList.add("verified");
     trackerChipStatus.classList.remove("error");
     localState.trackerChip = trackerChipInput.value.trim();
     saveLocalState();
-    addAudit("ID CHIP contabilizado", trackerChipInput.value.trim());
+    addAudit("ID do chip confirmado", trackerChipInput.value.trim());
     queueOfflineAction("chip", trackerChipInput.value.trim());
     updateCompletionState();
   });
@@ -2034,7 +2192,7 @@ if (finishOsButton) {
         currentOrder.status = "completed";
         currentOrder.completedAt = getNowLabel();
         updateLocalState("serviceOrders", serviceOrders);
-        addAudit("OS concluida", "OS-1048 finalizada com fotos, assinatura e ID CHIP");
+        addAudit("OS concluida", "OS-1048 finalizada com fotos, assinatura e ID do chip");
         queueOfflineAction("os-completed", "OS-1048 concluida");
         notifyLocal("OS-1048 concluida.");
         renderOrderQueue();
@@ -2042,6 +2200,7 @@ if (finishOsButton) {
         renderMobileOrders();
         renderTeamReport();
         renderMonthlySchedule();
+        renderMonthCalendar();
         renderTracking?.();
       }
       currentOsCompletionRegistered = true;
@@ -2383,7 +2542,7 @@ if (trackerChipInput && localState.trackerChip) {
   trackerChipInput.classList.add("verified");
   trackerChipVerified = true;
   if (trackerChipStatus) {
-    trackerChipStatus.textContent = `ID CHIP contabilizado: ${localState.trackerChip}`;
+    trackerChipStatus.textContent = `ID do chip confirmado: ${localState.trackerChip}`;
     trackerChipStatus.classList.add("verified");
   }
 }
@@ -2393,6 +2552,8 @@ renderDispatchBoard();
 renderMobileOrders();
 renderTeamReport();
 renderMonthlySchedule();
+renderMonthCalendar();
+renderNewOsStep();
 renderTracking();
 renderSyncStatus();
 renderAuditLog();
