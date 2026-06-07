@@ -4,101 +4,1507 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Controle OS e Estoque</title>
-    <script>
-      window.tailwind = window.tailwind || {};
-      window.tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              ink: "#17191c",
-              muted: "#68707b",
-              line: "#dfe3e8",
-              panel: "#ffffff",
-              soft: "#f6f7f9",
-              dark: "#0f1114",
-              teal: "#127d75",
-              amber: "#b47a13",
-              red: "#b73535"
-            },
-            boxShadow: {
-              panel: "0 16px 36px rgba(25, 29, 35, 0.08)",
-              lift: "0 18px 40px rgba(25, 29, 35, 0.13)"
-            }
-          }
-        }
-      };
-    </script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-    <style>
-      body {
-        margin: 0;
-        min-height: 100vh;
-        color: #17191c;
-        background: linear-gradient(135deg, rgba(15, 17, 20, 0.04), rgba(18, 125, 117, 0.05)), #f6f7f9;
-        -webkit-font-smoothing: antialiased;
-        text-rendering: geometricPrecision;
-      }
-
-      button,
-      input,
-      select,
-      textarea {
-        font: inherit;
-      }
-
-      button:focus-visible,
-      a:focus-visible,
-      input:focus-visible,
-      select:focus-visible,
-      textarea:focus-visible {
-        outline: none;
-        box-shadow: 0 0 0 3px rgba(18, 125, 117, 0.18);
-      }
-
-      .thin-scroll {
-        scrollbar-width: thin;
-        scrollbar-color: #c7ced8 transparent;
-      }
-
-      .signature-pad {
-        touch-action: none;
-      }
-
-      .bg-dark { background-color: #0f1114; }
-      .bg-panel { background-color: #ffffff; }
-      .bg-soft { background-color: #f6f7f9; }
-      .bg-teal { background-color: #127d75; }
-      .text-ink { color: #17191c; }
-      .text-muted { color: #68707b; }
-      .text-teal { color: #127d75; }
-      .text-amber { color: #b47a13; }
-      .text-red { color: #b73535; }
-      .border-line { border-color: #dfe3e8; }
-      .border-teal { border-color: #127d75; }
-      .border-amber { border-color: #b47a13; }
-      .border-red { border-color: #b73535; }
-      .border-l-teal { border-left-color: #127d75; }
-      .border-l-amber { border-left-color: #b47a13; }
-      .border-l-red { border-left-color: #b73535; }
-      .bg-teal\/10 { background-color: rgba(18, 125, 117, 0.1); }
-      .bg-amber\/10 { background-color: rgba(180, 122, 19, 0.1); }
-      .bg-red\/10 { background-color: rgba(183, 53, 53, 0.1); }
-      .bg-dark\/45 { background-color: rgba(15, 17, 20, 0.45); }
-      .border-teal\/20 { border-color: rgba(18, 125, 117, 0.2); }
-      .border-teal\/30 { border-color: rgba(18, 125, 117, 0.3); }
-      .border-amber\/20 { border-color: rgba(180, 122, 19, 0.2); }
-      .border-amber\/30 { border-color: rgba(180, 122, 19, 0.3); }
-      .border-red\/20 { border-color: rgba(183, 53, 53, 0.2); }
-      .shadow-panel { box-shadow: 0 16px 36px rgba(25, 29, 35, 0.08); }
-      .shadow-lift { box-shadow: 0 18px 40px rgba(25, 29, 35, 0.13); }
-    </style>
+    <link rel="stylesheet" href="./styles.css?v=simple-ux-1" />
   </head>
   <body>
-    <div id="root"></div>
-    <script type="text/babel" data-presets="env,react" src="./src/App.jsx?v=react-tailwind-2"></script>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <img src="./logo.jpg" alt="Logo da empresa" />
+          <div>
+            <strong>Controle OS</strong>
+            <span>Agenda e estoque</span>
+          </div>
+        </div>
+
+        <nav class="nav-list" aria-label="Menu principal">
+          <button class="active dashboard-nav">Painel</button>
+          <button class="operations-nav">Agenda</button>
+          <button class="operations-nav">Ordens</button>
+          <button class="stock-only">Estoque</button>
+          <button class="client-access-only">Clientes</button>
+          <button class="team-admin-nav">Equipe</button>
+          <button class="tracking-only">Rastreamento</button>
+          <button data-admin-only="true">Financeiro</button>
+          <button class="reports-access-only">Relatorios</button>
+        </nav>
+
+        <div class="sidebar-summary">
+          <span>Plantao do dia</span>
+          <strong>6 tecnicos em campo</strong>
+          <small>18 OS abertas, 7 concluidas</small>
+        </div>
+      </aside>
+
+      <main class="desktop-view">
+        <header class="topbar">
+          <div>
+            <p>Gestao operacional</p>
+            <h1>Painel operacional</h1>
+          </div>
+          <div class="topbar-actions">
+            <label class="role-switch">
+              Perfil
+              <select class="role-select" aria-label="Perfil do usuario" onchange="window.applyAccessFromForm && window.applyAccessFromForm()">
+                <option value="admin">Administrador</option>
+                <option value="estoque">Estoque</option>
+                <option value="tecnico">Tecnico</option>
+                <option value="atendimento">Atendimento</option>
+              </select>
+            </label>
+            <label class="team-access-control">
+              Equipe
+              <select class="team-access-select" aria-label="Equipe do tecnico" onchange="window.applyAccessFromForm && window.applyAccessFromForm()">
+                <option>Equipe 1</option>
+                <option>Equipe 2</option>
+                <option>Equipe 3</option>
+                <option>Equipe 4</option>
+                <option>Equipe 5</option>
+              </select>
+            </label>
+            <button class="icon-button" aria-label="Pesquisar">⌕</button>
+            <button class="secondary-button desktop-utility-action">Exportar</button>
+            <button class="secondary-button team-login-button" type="button">Conta equipe</button>
+            <button class="primary-button new-os-button">Nova OS</button>
+            <span class="active-account-label">Administrador</span>
+          </div>
+        </header>
+
+        <section class="metrics-grid" aria-label="Indicadores">
+          <article class="metric-card">
+            <span>OS em andamento</span>
+            <strong>18</strong>
+            <small>4 com prioridade alta</small>
+          </article>
+          <article class="metric-card stock-only">
+            <span>Estoque critico</span>
+            <strong>9</strong>
+            <small>Itens abaixo do minimo</small>
+          </article>
+          <article class="metric-card">
+            <span>SLA no prazo</span>
+            <strong>92%</strong>
+            <small>Ultimos 30 dias</small>
+          </article>
+          <article class="metric-card financial-content">
+            <span>Faturamento previsto</span>
+            <strong>R$ 86,4k</strong>
+            <small>Materiais + servicos agendados</small>
+          </article>
+        </section>
+
+        <section class="workspace-grid">
+          <article class="calendar-panel dispatch-panel">
+            <div class="section-heading">
+              <div>
+                <span>Agenda das equipes</span>
+                <h2>Arraste a OS para a equipe responsavel</h2>
+              </div>
+              <div class="segmented">
+                <button class="active">Hoje</button>
+                <button>Semana</button>
+                <button>Mes</button>
+              </div>
+            </div>
+
+            <div class="monthly-schedule-card">
+              <div class="monthly-schedule-head">
+                <div>
+                  <span>Planejamento mensal</span>
+                  <strong class="monthly-schedule-title">OS agendadas do mes</strong>
+                </div>
+                <button class="primary-button monthly-schedule-button" type="button">Agendar mes</button>
+              </div>
+              <div class="monthly-schedule-list" aria-label="OS agendadas no mes"></div>
+            </div>
+
+            <div class="dispatch-board">
+              <section class="available-orders" aria-label="OS disponiveis">
+                <div class="dispatch-title">
+                  <strong>OS disponiveis</strong>
+                  <span>Arraste para uma equipe</span>
+                </div>
+                <article class="dispatch-card high" draggable="true">
+                  <strong>OS-1052</strong>
+                  <span>Banco Solar - Alarme disparando</span>
+                  <small>Prioridade alta · 08:30</small>
+                </article>
+                <article class="dispatch-card" draggable="true">
+                  <strong>OS-1053</strong>
+                  <span>Loja Prime - Camera sem imagem</span>
+                  <small>Preventiva · 10:00</small>
+                </article>
+                <article class="dispatch-card warning" draggable="true">
+                  <strong>OS-1054</strong>
+                  <span>Condominio Lago - Fechadura</span>
+                  <small>Instalacao · 13:30</small>
+                </article>
+                <article class="dispatch-card" draggable="true">
+                  <strong>OS-1055</strong>
+                  <span>Galpao Norte - Rede e DVR</span>
+                  <small>Manutencao · 15:00</small>
+                </article>
+              </section>
+
+              <section class="team-agendas" aria-label="Agendas das 5 equipes">
+                <article class="team-column" data-team="Equipe 1" data-status="em-atendimento">
+                  <div class="team-column-head">
+                    <strong>Equipe 1 <span class="team-status-dot teal"></span></strong>
+                    <span>Bruno e Leo</span>
+                    <small>Em atendimento</small>
+                  </div>
+                  <div class="team-dropzone">
+                    <article class="dispatch-card assigned" draggable="true">
+                      <strong>OS-1048</strong>
+                      <span>Alpha Condominio</span>
+                      <small>09:30 · 3 fotos pendentes</small>
+                    </article>
+                  </div>
+                </article>
+                <article class="team-column" data-team="Equipe 2" data-status="a-caminho">
+                  <div class="team-column-head">
+                    <strong>Equipe 2 <span class="team-status-dot amber"></span></strong>
+                    <span>Ana e Rui</span>
+                    <small>A caminho</small>
+                  </div>
+                  <div class="team-dropzone">
+                    <article class="dispatch-card assigned warning" draggable="true">
+                      <strong>OS-1050</strong>
+                      <span>Clinica Santa Clara</span>
+                      <small>14:00 · assinatura pendente</small>
+                    </article>
+                  </div>
+                </article>
+                <article class="team-column" data-team="Equipe 3" data-status="em-rota">
+                  <div class="team-column-head">
+                    <strong>Equipe 3 <span class="team-status-dot teal"></span></strong>
+                    <span>Marcos e Bia</span>
+                    <small>Em rota</small>
+                  </div>
+                  <div class="team-dropzone">
+                    <article class="dispatch-card assigned" draggable="true">
+                      <strong>OS-1049</strong>
+                      <span>Mercado Central</span>
+                      <small>11:00 · em rota</small>
+                    </article>
+                  </div>
+                </article>
+                <article class="team-column" data-team="Equipe 4" data-status="agendada">
+                  <div class="team-column-head">
+                    <strong>Equipe 4 <span class="team-status-dot amber"></span></strong>
+                    <span>Diego e Caio</span>
+                    <small>Agendada</small>
+                  </div>
+                  <div class="team-dropzone">
+                    <article class="dispatch-card assigned" draggable="true">
+                      <strong>OS-1051</strong>
+                      <span>Residencial Norte</span>
+                      <small>16:30 · instalacao</small>
+                    </article>
+                  </div>
+                </article>
+                <article class="team-column" data-team="Equipe 5" data-status="disponivel">
+                  <div class="team-column-head">
+                    <strong>Equipe 5 <span class="team-status-dot teal"></span></strong>
+                    <span>Plantao</span>
+                    <small>Disponivel</small>
+                  </div>
+                  <div class="team-dropzone empty-state">
+                    <span class="empty-placeholder">Solte uma OS aqui</span>
+                  </div>
+                </article>
+              </section>
+            </div>
+          </article>
+
+          <article class="orders-panel">
+            <div class="section-heading">
+              <div>
+                <span>Hoje</span>
+                <h2>Fila de OS</h2>
+              </div>
+              <button class="ghost-button">Ver todas</button>
+            </div>
+
+            <div class="order-list">
+              <article class="order-row high">
+                <div class="order-code">OS-1048</div>
+                <div>
+                  <strong>Cliente Alpha Condominio</strong>
+                  <span>Portao automatico sem resposta · 2 produtos no cliente</span>
+                </div>
+                <small>Bruno · 09:30</small>
+              </article>
+              <article class="order-row">
+                <div class="order-code">OS-1049</div>
+                <div>
+                  <strong>Mercado Central</strong>
+                  <span>Preventiva em cameras CFTV</span>
+                </div>
+                <small>Marcos · 11:00</small>
+              </article>
+              <article class="order-row warning">
+                <div class="order-code">OS-1050</div>
+                <div>
+                  <strong>Clinica Santa Clara</strong>
+                  <span>Troca de fonte e bateria</span>
+                </div>
+                <small>Ana · 14:00</small>
+              </article>
+              <article class="order-row">
+                <div class="order-code">OS-1051</div>
+                <div>
+                  <strong>Residencial Norte</strong>
+                  <span>Instalacao de leitor facial</span>
+                </div>
+                <small>Diego · 16:30</small>
+              </article>
+            </div>
+          </article>
+
+          <article class="stock-panel stock-only">
+            <div class="section-heading">
+              <div>
+                <span>Almoxarifado com QR Code</span>
+                <h2>Produtos, entradas, saidas e historico</h2>
+              </div>
+              <span class="pill amber stock-low-count">3 baixos</span>
+            </div>
+
+            <div class="inventory-dashboard">
+              <div>
+                <span>Itens cadastrados</span>
+                <strong class="stock-total-products">6</strong>
+              </div>
+              <div>
+                <span>Alertas</span>
+                <strong class="stock-alert-products">3</strong>
+              </div>
+              <div>
+                <span>Ultima movimentacao</span>
+                <strong class="stock-last-movement">OS</strong>
+              </div>
+            </div>
+
+            <div class="inventory-layout">
+              <section class="inventory-products">
+                <div class="inventory-tools">
+                  <label>
+                    Scanner QR / SKU
+                    <input class="stock-scan-input" type="search" placeholder="Escaneie QR ou digite SKU" />
+                  </label>
+                  <button class="secondary-button start-qr-camera-button" type="button">Ler camera</button>
+                  <button class="secondary-button scan-product-button" type="button">Abrir produto</button>
+                </div>
+                <div class="qr-scanner-box">
+                  <video class="qr-scanner-video" playsinline muted></video>
+                  <small class="qr-scanner-status">Leitor QR pronto para SKU ou camera</small>
+                </div>
+                <div class="inventory-product-list" aria-label="Produtos cadastrados"></div>
+              </section>
+
+              <section class="inventory-side">
+                <form class="inventory-product-form">
+                  <div class="form-section-title">
+                    <span>Cadastro</span>
+                    <strong>Novo produto</strong>
+                  </div>
+                  <div class="form-grid two">
+                    <label>
+                      Nome
+                      <input class="stock-product-name" type="text" required />
+                    </label>
+                    <label>
+                      SKU
+                      <input class="stock-product-sku" type="text" required />
+                    </label>
+                    <label>
+                      Categoria
+                      <input class="stock-product-category" type="text" required />
+                    </label>
+                    <label>
+                      Localizacao
+                      <input class="stock-product-location" type="text" required />
+                    </label>
+                    <label>
+                      Quantidade atual
+                      <input class="stock-product-qty" type="number" min="0" value="0" required />
+                    </label>
+                    <label>
+                      Estoque minimo
+                      <input class="stock-product-min" type="number" min="0" value="1" required />
+                    </label>
+                    <label class="financial-content">
+                      Preco de custo
+                      <input class="stock-product-cost" type="number" min="0" step="0.01" value="0" required />
+                    </label>
+                    <label class="financial-content">
+                      Preco de venda
+                      <input class="stock-product-price" type="number" min="0" step="0.01" value="0" />
+                    </label>
+                  </div>
+                  <button class="primary-button wide" type="submit">Cadastrar e gerar QR</button>
+                </form>
+
+                <div class="inventory-selected-card">
+                  <div>
+                    <span>Produto selecionado</span>
+                    <strong class="selected-stock-name">Fonte 12V 2A</strong>
+                    <small class="selected-stock-meta">FON-12V-2A - Prateleira A1</small>
+                  </div>
+                  <div class="qr-label" aria-label="Etiqueta QR do produto"></div>
+                  <button class="secondary-button print-qr-button" type="button">Imprimir etiqueta</button>
+                </div>
+              </section>
+            </div>
+
+            <div class="inventory-movement-grid">
+              <form class="stock-movement-form stock-entry-form">
+                <div class="form-section-title">
+                  <span>Entrada</span>
+                  <strong>Somar estoque</strong>
+                </div>
+                <label>
+                  SKU ou QR
+                  <input class="entry-identifier" type="text" required />
+                </label>
+                <label>
+                  Quantidade
+                  <input class="entry-qty" type="number" min="1" value="1" required />
+                </label>
+                <label>
+                  Fornecedor / motivo
+                  <input class="entry-reason" type="text" placeholder="Fornecedor A - reposicao" required />
+                </label>
+                <button class="primary-button wide" type="submit">Registrar entrada</button>
+              </form>
+
+              <form class="stock-movement-form stock-exit-form">
+                <div class="form-section-title">
+                  <span>Saida</span>
+                  <strong>Baixar estoque</strong>
+                </div>
+                <label>
+                  SKU ou QR
+                  <input class="exit-identifier" type="text" required />
+                </label>
+                <label>
+                  Quantidade
+                  <input class="exit-qty" type="number" min="1" value="1" required />
+                </label>
+                <label>
+                  Motivo
+                  <select class="exit-reason" required>
+                    <option value="venda">Venda</option>
+                    <option value="OS">OS</option>
+                    <option value="troca">Troca</option>
+                    <option value="perda">Perda</option>
+                    <option value="garantia">Garantia</option>
+                  </select>
+                </label>
+                <button class="primary-button wide" type="submit">Registrar saida</button>
+              </form>
+
+              <section class="stock-alert-list">
+                <div class="form-section-title">
+                  <span>Alertas</span>
+                  <strong>Estoque baixo</strong>
+                </div>
+                <div class="low-stock-list"></div>
+              </section>
+            </div>
+
+            <section class="stock-history-panel">
+              <div class="form-section-title">
+                <span>Historico</span>
+                <strong>Movimentacoes recentes</strong>
+              </div>
+              <div class="stock-history-list"></div>
+            </section>
+          </article>
+
+          <article class="finance-panel admin-only financial-content" aria-label="Painel financeiro do administrador">
+            <div class="section-heading">
+              <div>
+                <span>Somente administrador</span>
+                <h2>Financeiro mensal</h2>
+              </div>
+              <span class="pill dark-pill">Acesso restrito</span>
+            </div>
+
+            <div class="finance-summary">
+              <div>
+                <span>Material vendido no mes</span>
+                <strong>R$ 34,6k</strong>
+                <small>214 itens vendidos</small>
+              </div>
+              <div>
+                <span>Servicos agendados</span>
+                <strong>R$ 51,8k</strong>
+                <small>38 OS com valor definido</small>
+              </div>
+              <div>
+                <span>Faturamento previsto</span>
+                <strong>R$ 86,4k</strong>
+                <small>Junho 2026</small>
+              </div>
+              <div>
+                <span>Valor total do estoque</span>
+                <strong>R$ 128,9k</strong>
+                <small>Custo estimado dos itens</small>
+              </div>
+            </div>
+
+            <div class="monthly-finance">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Mes</th>
+                    <th>Material vendido</th>
+                    <th>Valor dos servicos</th>
+                    <th>Previsto</th>
+                    <th>Estoque total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Mar/2026</td>
+                    <td>R$ 27.400</td>
+                    <td>R$ 44.200</td>
+                    <td><strong>R$ 71.600</strong></td>
+                    <td>R$ 121.300</td>
+                  </tr>
+                  <tr>
+                    <td>Abr/2026</td>
+                    <td>R$ 31.850</td>
+                    <td>R$ 48.900</td>
+                    <td><strong>R$ 80.750</strong></td>
+                    <td>R$ 126.700</td>
+                  </tr>
+                  <tr>
+                    <td>Mai/2026</td>
+                    <td>R$ 29.600</td>
+                    <td>R$ 46.400</td>
+                    <td><strong>R$ 76.000</strong></td>
+                    <td>R$ 119.500</td>
+                  </tr>
+                  <tr>
+                    <td>Jun/2026</td>
+                    <td>R$ 34.600</td>
+                    <td>R$ 51.800</td>
+                    <td><strong>R$ 86.400</strong></td>
+                    <td>R$ 128.900</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="reports-panel reports-access-only" aria-label="Relatorios operacionais">
+            <div class="section-heading">
+              <div>
+                <span>Gestao e supervisao</span>
+                <h2>Relatorios</h2>
+              </div>
+              <div class="segmented">
+                <button class="active">Equipes</button>
+                <button>Instrucao OS</button>
+              </div>
+            </div>
+
+            <div class="reports-grid">
+              <section class="report-card">
+                <div class="report-heading">
+                  <div>
+                    <span>Relatorio por equipe</span>
+                    <strong>Produtividade e qualidade</strong>
+                  </div>
+                <div class="report-actions">
+                  <label>
+                    Equipe
+                    <select class="team-report-filter" aria-label="Filtrar OS concluidas por equipe">
+                      <option value="all">Todas</option>
+                      <option>Equipe 1</option>
+                      <option>Equipe 2</option>
+                      <option>Equipe 3</option>
+                      <option>Equipe 4</option>
+                      <option>Equipe 5</option>
+                    </select>
+                  </label>
+                  <span class="pill teal completed-team-count">66 concluidas</span>
+                  <button class="ghost-button">Exportar</button>
+                </div>
+                </div>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Equipe</th>
+                      <th>OS concluidas</th>
+                      <th>Tempo medio</th>
+                      <th>Fotos</th>
+                      <th>Assinaturas</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody class="team-report-body">
+                    <tr>
+                      <td>Equipe 1</td>
+                      <td>18</td>
+                      <td>1h42</td>
+                      <td>100%</td>
+                      <td>100%</td>
+                      <td><span class="pill teal">No padrao</span></td>
+                    </tr>
+                    <tr>
+                      <td>Equipe 2</td>
+                      <td>14</td>
+                      <td>2h05</td>
+                      <td>96%</td>
+                      <td>93%</td>
+                      <td><span class="pill amber">Acompanhar</span></td>
+                    </tr>
+                    <tr>
+                      <td>Equipe 3</td>
+                      <td>16</td>
+                      <td>1h58</td>
+                      <td>98%</td>
+                      <td>100%</td>
+                      <td><span class="pill teal">No padrao</span></td>
+                    </tr>
+                    <tr>
+                      <td>Equipe 4</td>
+                      <td>11</td>
+                      <td>2h26</td>
+                      <td>91%</td>
+                      <td>88%</td>
+                      <td><span class="pill amber">Revisar</span></td>
+                    </tr>
+                    <tr>
+                      <td>Equipe 5</td>
+                      <td>7</td>
+                      <td>1h35</td>
+                      <td>100%</td>
+                      <td>100%</td>
+                      <td><span class="pill teal">Plantao ok</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+
+              <section class="report-card">
+                <div class="report-heading">
+                  <div>
+                    <span>Quem instrui as OS</span>
+                    <strong>Distribuicao, orientacao e pendencias</strong>
+                  </div>
+                  <button class="ghost-button">Detalhar</button>
+                </div>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Responsavel</th>
+                      <th>OS instruidas</th>
+                      <th>Redirecionadas</th>
+                      <th>Pendencias</th>
+                      <th>Ultima acao</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Administrador</td>
+                      <td>31</td>
+                      <td>4</td>
+                      <td>2</td>
+                      <td>OS-1051 para Equipe 4</td>
+                    </tr>
+                    <tr>
+                      <td>Supervisor Campo</td>
+                      <td>22</td>
+                      <td>3</td>
+                      <td>1</td>
+                      <td>Checklist reforcado OS-1050</td>
+                    </tr>
+                    <tr>
+                      <td>Plantao</td>
+                      <td>9</td>
+                      <td>2</td>
+                      <td>0</td>
+                      <td>Apoio enviado para Equipe 5</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+            </div>
+          </article>
+
+          <article class="profiles-panel admin-only" aria-label="Perfis de usuario e permissoes">
+            <div class="section-heading">
+              <div>
+                <span>Autenticacao e autorizacao</span>
+                <h2>Perfis de usuario</h2>
+              </div>
+              <span class="pill dark-pill">Regras de acesso</span>
+            </div>
+
+            <div class="profiles-grid">
+              <article class="profile-card">
+                <strong>Administrador</strong>
+                <span>Ve tudo, faturamento, estoque, OS, relatorios e aprova materiais.</span>
+              </article>
+              <article class="profile-card">
+                <strong>Responsavel estoque</strong>
+                <span>Cadastra produtos, movimenta estoque, aprova, separa e confirma retirada.</span>
+              </article>
+              <article class="profile-card">
+                <strong>Instrutor de OS</strong>
+                <span>Cria e edita OS, vincula cliente/tecnico e solicita material sem alterar estoque.</span>
+              </article>
+              <article class="profile-card">
+                <strong>Tecnico de campo</strong>
+                <span>Ve apenas suas OS, atualiza status, adiciona fotos, assinatura e solicita material.</span>
+              </article>
+              <article class="profile-card">
+                <strong>Atendimento</strong>
+                <span>Gerencia agenda, equipes e ordens de servico sem visualizar estoque ou financeiro.</span>
+              </article>
+            </div>
+
+            <div class="team-account-panel">
+              <div class="report-heading">
+                <div>
+                  <span>Contas locais por equipe</span>
+                  <strong>Acesso do tecnico limitado a propria equipe</strong>
+                </div>
+                <button class="ghost-button team-login-button" type="button">Entrar como equipe</button>
+              </div>
+              <div class="team-account-list"></div>
+            </div>
+          </article>
+
+          <article class="client-history-panel client-access-only" aria-label="Historico do cliente com fotos e assinatura">
+            <div class="section-heading">
+              <div>
+                <span>Cliente Alpha Condominio</span>
+                <h2>Historico do cliente</h2>
+              </div>
+              <button class="ghost-button">Abrir cadastro</button>
+            </div>
+
+            <div class="client-summary-grid" aria-label="Resumo do cliente">
+              <section class="client-summary-card primary">
+                <span>Cliente</span>
+                <strong>Alpha Condominio</strong>
+                <small>Sindico Joao - (11) 4000-1000</small>
+              </section>
+              <section class="client-summary-card">
+                <span>Endereco</span>
+                <strong>Rua das Flores, 120</strong>
+                <small>Portaria 24h - zona norte</small>
+              </section>
+              <section class="client-summary-card">
+                <span>Ultima OS</span>
+                <strong>OS-1048</strong>
+                <small>Em andamento com Equipe 1</small>
+              </section>
+              <section class="client-summary-card">
+                <span>Historico</span>
+                <strong>2 OS</strong>
+                <small>Fotos e assinaturas arquivadas</small>
+              </section>
+            </div>
+
+            <div class="client-history-toolbar">
+              <div>
+                <span>Registros recentes</span>
+                <strong>OS, fotos, assinatura e observacoes</strong>
+              </div>
+              <div class="client-history-tags">
+                <span class="pill teal">Cliente ativo</span>
+                <span class="pill amber">1 em aberto</span>
+              </div>
+            </div>
+
+            <div class="client-history-list">
+              <article class="client-history-item">
+                <div class="history-summary">
+                  <span>OS-1048 · 05/06/2026</span>
+                  <strong>Portao automatico sem resposta</strong>
+                  <div class="client-history-meta">
+                    <span>3 fotos</span>
+                    <span>Assinatura pendente</span>
+                    <span>ID CHIP pendente</span>
+                  </div>
+                  <small>Equipe 1 · Bruno · Servico em andamento</small>
+                </div>
+                <div class="history-proof-strip" aria-label="Fotos e assinatura da OS-1048">
+                  <button class="history-proof before">
+                    <span>Foto 1</span>
+                    <strong>Antes</strong>
+                  </button>
+                  <button class="history-proof during">
+                    <span>Foto 2</span>
+                    <strong>Durante</strong>
+                  </button>
+                  <button class="history-proof after">
+                    <span>Foto 3</span>
+                    <strong>Depois</strong>
+                  </button>
+                  <button class="history-signature">
+                    <span>Assinatura</span>
+                    <strong>Cliente Alpha</strong>
+                  </button>
+                </div>
+              </article>
+
+              <article class="client-history-item muted-history">
+                <div class="history-summary">
+                  <span>OS-0987 · 18/05/2026</span>
+                  <strong>Preventiva do motor e sensores</strong>
+                  <div class="client-history-meta">
+                    <span>3 fotos</span>
+                    <span>Assinada</span>
+                    <span>Concluida</span>
+                  </div>
+                  <small>Equipe 3 · Marcos · Concluida</small>
+                </div>
+                <div class="history-proof-strip" aria-label="Fotos e assinatura da OS-0987">
+                  <button class="history-proof before">
+                    <span>Foto 1</span>
+                    <strong>Antes</strong>
+                  </button>
+                  <button class="history-proof during">
+                    <span>Foto 2</span>
+                    <strong>Durante</strong>
+                  </button>
+                  <button class="history-proof after">
+                    <span>Foto 3</span>
+                    <strong>Depois</strong>
+                  </button>
+                  <button class="history-signature">
+                    <span>Assinatura</span>
+                    <strong>Sindico</strong>
+                  </button>
+                </div>
+              </article>
+            </div>
+          </article>
+
+          <article class="tracking-panel" id="rastreamento-equipes" aria-label="Rastreamento das equipes em campo">
+            <div class="section-heading">
+              <div>
+                <span>Rastreamento</span>
+                <h2>Localizacao das equipes em campo</h2>
+              </div>
+              <div class="tracking-actions">
+                <span class="pill teal tracking-updated-at">Atualizado agora</span>
+                <button class="ghost-button refresh-tracking-button" type="button">Atualizar posicoes</button>
+              </div>
+            </div>
+
+            <div class="tracking-layout">
+              <section class="tracking-map" aria-label="Mapa operacional das equipes">
+                <div class="tracking-road main-road"></div>
+                <div class="tracking-road side-road one"></div>
+                <div class="tracking-road side-road two"></div>
+                <div class="tracking-map-label">
+                  <strong>Mapa operacional</strong>
+                  <small>Posicoes simuladas ate integrar GPS real</small>
+                </div>
+                <div class="tracking-marker-layer"></div>
+              </section>
+
+              <section class="tracking-side">
+                <div class="tracking-side-head">
+                  <div>
+                    <span>Equipes visiveis</span>
+                    <strong class="tracking-visible-count">5 equipes</strong>
+                  </div>
+                  <span class="pill amber">Supervisao</span>
+                </div>
+                <div class="tracking-team-list"></div>
+              </section>
+            </div>
+          </article>
+
+          <article class="team-panel">
+            <div class="section-heading">
+              <div>
+                <span>Campo</span>
+                <h2>Status das equipes e tecnicos</h2>
+              </div>
+              <button class="ghost-button">Mapa</button>
+            </div>
+
+            <div class="team-status-grid" aria-label="Resumo do status das equipes">
+              <button class="team-status-card active" data-team-detail="Equipe 1" data-team-state="Em atendimento" data-team-members="Bruno, Leo" data-team-os="OS-1048">
+                <strong>Equipe 1</strong>
+                <span>Em atendimento</span>
+              </button>
+              <button class="team-status-card" data-team-detail="Equipe 2" data-team-state="A caminho" data-team-members="Ana, Rui" data-team-os="OS-1050">
+                <strong>Equipe 2</strong>
+                <span>A caminho</span>
+              </button>
+              <button class="team-status-card" data-team-detail="Equipe 3" data-team-state="Em rota" data-team-members="Marcos, Bia" data-team-os="OS-1049">
+                <strong>Equipe 3</strong>
+                <span>Em rota</span>
+              </button>
+              <button class="team-status-card" data-team-detail="Equipe 4" data-team-state="Agendada" data-team-members="Diego, Caio" data-team-os="OS-1051">
+                <strong>Equipe 4</strong>
+                <span>Agendada</span>
+              </button>
+              <button class="team-status-card" data-team-detail="Equipe 5" data-team-state="Disponivel" data-team-members="Plantao" data-team-os="Sem OS">
+                <strong>Equipe 5</strong>
+                <span>Disponivel</span>
+              </button>
+            </div>
+
+            <div class="technician-routing">
+              <div class="technician-directory">
+                <div class="technician-directory-head">
+                  <div>
+                    <span>Tecnicos cadastrados</span>
+                    <strong class="technician-count">4 ativos</strong>
+                  </div>
+                  <button class="ghost-button new-tech-button">Novo</button>
+                </div>
+                <div class="technician-list" aria-label="Tecnicos cadastrados"></div>
+              </div>
+
+              <form class="technician-form">
+                <div class="technician-form-head">
+                  <div>
+                    <span>Edicao rapida</span>
+                    <strong class="technician-form-title">Bruno</strong>
+                  </div>
+                  <span class="pill teal technician-form-state">Selecionado</span>
+                </div>
+                <label>
+                  Nome do tecnico
+                  <input class="tech-name-input" name="name" type="text" autocomplete="off" required />
+                </label>
+                <label>
+                  Telefone
+                  <input class="tech-phone-input" name="phone" type="tel" autocomplete="off" />
+                </label>
+                <label>
+                  Status
+                  <select class="tech-status-select" name="status">
+                    <option>Disponivel</option>
+                    <option>A caminho</option>
+                    <option>Em atendimento</option>
+                    <option>Checklist final</option>
+                    <option>Redirecionado</option>
+                    <option>Offline</option>
+                  </select>
+                </label>
+                <label>
+                  Equipe
+                  <select class="team-redirect-select" name="team">
+                    <option>Equipe 1</option>
+                    <option>Equipe 2</option>
+                    <option>Equipe 3</option>
+                    <option>Equipe 4</option>
+                    <option>Equipe 5</option>
+                  </select>
+                </label>
+                <div class="technician-form-actions">
+                  <button class="primary-button save-tech-button" type="submit">Salvar tecnico</button>
+                  <button class="danger-button delete-tech-button" type="button">Excluir</button>
+                </div>
+              </form>
+            </div>
+
+            <div class="selected-team-detail">
+              <span>Equipe selecionada</span>
+              <strong class="selected-team-title">Equipe 1</strong>
+              <small class="selected-team-copy">Bruno, Leo · Em atendimento · OS-1048</small>
+            </div>
+          </article>
+
+          <article class="technician-app-panel">
+            <div class="section-heading">
+              <div>
+                <span>Aplicativo do tecnico</span>
+                <h2>Execucao de OS em campo</h2>
+              </div>
+              <span class="pill teal">Mobile + PC</span>
+            </div>
+
+            <div class="tech-app-desktop-grid">
+              <section class="tech-app-card">
+                <span>OS do dia</span>
+                <strong>4</strong>
+                <small>1 alta prioridade, 2 pendentes, 1 concluida</small>
+              </section>
+              <section class="tech-app-card">
+                <span>Check-in</span>
+                <strong class="desktop-checkin-status">Pendente</strong>
+                <small>Data, hora e GPS opcional</small>
+              </section>
+              <section class="tech-app-card">
+                <span>Conclusao</span>
+                <strong>Fotos + assinatura</strong>
+                <small>Bloqueada sem 3 fotos, assinatura e ID CHIP</small>
+              </section>
+              <section class="tech-app-card">
+                <span>Produtividade</span>
+                <strong>1h42 medio</strong>
+                <small>7 OS finalizadas na semana</small>
+              </section>
+            </div>
+
+            <div class="tech-app-desktop-flow">
+              <div class="desktop-tech-list">
+                <button class="desktop-tech-os active" type="button">
+                  <strong>OS-1048</strong>
+                  <span>Alpha Condominio - Alta - 09:30</span>
+                </button>
+                <button class="desktop-tech-os" type="button">
+                  <strong>OS-1050</strong>
+                  <span>Clinica Santa Clara - Pendente - 14:00</span>
+                </button>
+                <button class="desktop-tech-os" type="button">
+                  <strong>OS-1051</strong>
+                  <span>Residencial Norte - Agendada - 16:30</span>
+                </button>
+              </div>
+              <div class="desktop-tech-detail">
+                <strong>OS-1048 - Alpha Condominio</strong>
+                <span>Rua das Flores, 120 - (11) 4000-1000</span>
+                <small>Historico: 2 OS anteriores, fotos e assinaturas disponiveis.</small>
+                <small>Materiais previstos: Fonte 12V 2A, Sensor magnetico.</small>
+              </div>
+            </div>
+          </article>
+        </section>
+      </main>
+
+      <main class="mobile-view">
+        <header class="mobile-header">
+          <img src="./logo.jpg" alt="Logo da empresa" />
+          <div>
+            <span>Area do tecnico</span>
+            <strong>Minhas OS</strong>
+          </div>
+          <label class="team-access-control mobile-team-control">
+            Equipe
+            <select class="team-access-select" aria-label="Equipe do tecnico no mobile" onchange="window.applyAccessFromForm && window.applyAccessFromForm()">
+              <option>Equipe 1</option>
+              <option>Equipe 2</option>
+              <option>Equipe 3</option>
+              <option>Equipe 4</option>
+              <option>Equipe 5</option>
+            </select>
+          </label>
+          <button class="secondary-button team-login-button mobile-login-button" type="button">Conta</button>
+          <button class="icon-button" aria-label="Menu">☰</button>
+        </header>
+
+        <section class="tech-status">
+          <div>
+            <span>Hoje, 05/06</span>
+            <strong>4 atendimentos</strong>
+          </div>
+          <button class="primary-button">Iniciar rota</button>
+        </section>
+
+        <section class="tech-dashboard-grid" aria-label="Resumo do tecnico">
+          <article>
+            <span>OS do dia</span>
+            <strong>4</strong>
+          </article>
+          <article>
+            <span>Pendentes</span>
+            <strong>2</strong>
+          </article>
+          <article>
+            <span>Concluidas</span>
+            <strong>1</strong>
+          </article>
+          <article>
+            <span>Tempo medio</span>
+            <strong>1h42</strong>
+          </article>
+        </section>
+
+        <section class="mobile-tabs" aria-label="Filtro de OS">
+          <button class="active">Agora</button>
+          <button>Proximas</button>
+          <button>Concluidas</button>
+        </section>
+
+        <section class="mobile-os-list" aria-label="Lista de ordens de servico">
+          <button class="mobile-os-row active" type="button">
+            <span class="pill red">Alta</span>
+            <strong>OS-1048</strong>
+            <small>Alpha Condominio - Rua das Flores, 120 - 09:30 - Em andamento</small>
+          </button>
+          <button class="mobile-os-row" type="button">
+            <span class="pill amber">Pendente</span>
+            <strong>OS-1050</strong>
+            <small>Clinica Santa Clara - Rua Saude, 88 - 14:00 - Material solicitado</small>
+          </button>
+          <button class="mobile-os-row" type="button">
+            <span class="pill teal">Concluida</span>
+            <strong>OS-0987</strong>
+            <small>Mercado Central - Av. Central, 410 - Ontem - Finalizada</small>
+          </button>
+        </section>
+
+        <article class="mobile-order active-order">
+          <div class="mobile-order-top">
+            <span class="pill red">Alta</span>
+            <strong>OS-1048</strong>
+          </div>
+          <h2>Alpha Condominio</h2>
+          <p>Portao automatico sem resposta. Verificar central, fonte e sensores.</p>
+          <div class="mobile-details">
+            <span>Data e horario: 05/06 - 09:30</span>
+            <span>Endereco: Rua das Flores, 120</span>
+            <span>Telefone: (11) 4000-1000</span>
+            <span>Status: Em andamento</span>
+          </div>
+          <div class="mobile-actions">
+            <a class="secondary-button" href="tel:+551140001000">Ligar</a>
+            <a class="secondary-button" href="https://www.google.com/maps/search/?api=1&query=Rua%20das%20Flores%20120" target="_blank" rel="noreferrer">Rota</a>
+            <a class="secondary-button" href="https://wa.me/551140001000" target="_blank" rel="noreferrer">WhatsApp</a>
+          </div>
+          <button class="primary-button wide checkin-button" type="button">Iniciar Atendimento</button>
+          <small class="checkin-status">Atendimento ainda nao iniciado</small>
+        </article>
+
+        <section class="mobile-os-detail">
+          <div class="section-heading compact">
+            <div>
+              <span>Detalhes da OS</span>
+              <h2>Cliente, historico e materiais</h2>
+            </div>
+            <span class="pill amber">2 pendencias</span>
+          </div>
+          <div class="detail-stack">
+            <div>
+              <strong>Dados do cliente</strong>
+              <span>Alpha Condominio - Sindico Joao - (11) 4000-1000</span>
+            </div>
+            <div>
+              <strong>Historico do cliente</strong>
+              <span>OS-0987 concluida com troca de sensor. Fotos e assinatura arquivadas.</span>
+            </div>
+            <div>
+              <strong>Observacoes da OS</strong>
+              <span>Cliente solicitou prioridade. Verificar central, fonte e sensores antes de liberar.</span>
+            </div>
+            <div>
+              <strong>Materiais previstos</strong>
+              <span>Fonte 12V 2A, Sensor magnetico, Controle remoto TX.</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="mobile-tracking-panel tracking-only">
+          <div class="section-heading compact">
+            <div>
+              <span>Rastreamento</span>
+              <h2>Localizacao da equipe</h2>
+            </div>
+            <button class="ghost-button refresh-tracking-button" type="button">Atualizar</button>
+          </div>
+          <div class="tracking-map mobile-tracking-map" aria-label="Mapa da equipe no celular">
+            <div class="tracking-road main-road"></div>
+            <div class="tracking-road side-road one"></div>
+            <div class="tracking-road side-road two"></div>
+            <div class="tracking-map-label">
+              <strong>Equipe em campo</strong>
+              <small class="tracking-updated-at">Atualizado agora</small>
+            </div>
+            <div class="tracking-marker-layer mobile-tracking-marker-layer"></div>
+          </div>
+          <div class="tracking-team-list mobile-tracking-team-list"></div>
+        </section>
+
+        <section class="mobile-form stock-only">
+          <div class="section-heading compact">
+            <div>
+              <span>Produtos do estoque</span>
+              <h2>Solicitar material para retirada</h2>
+            </div>
+            <span class="pill teal">Disponivel</span>
+          </div>
+          <label>
+            Buscar produto
+            <input class="product-search" type="search" placeholder="Fonte, camera, cabo..." />
+          </label>
+          <div class="product-grid" aria-label="Produtos disponiveis no estoque">
+            <button class="product-card active" data-product="Fonte 12V 2A" data-price="48,00">
+              <strong>Fonte 12V 2A</strong>
+              <span>8 em estoque <span class="financial-content">· R$ 48,00</span></span>
+            </button>
+            <button class="product-card" data-product="Bateria 7Ah" data-price="96,00">
+              <strong>Bateria 7Ah</strong>
+              <span>10 em estoque <span class="financial-content">· R$ 96,00</span></span>
+            </button>
+            <button class="product-card" data-product="Sensor magnetico" data-price="32,00">
+              <strong>Sensor magnetico</strong>
+              <span>42 em estoque <span class="financial-content">· R$ 32,00</span></span>
+            </button>
+            <button class="product-card" data-product="Camera dome Full HD" data-price="189,00">
+              <strong>Camera dome Full HD</strong>
+              <span>14 em estoque <span class="financial-content">· R$ 189,00</span></span>
+            </button>
+            <button class="product-card" data-product="Cabo UTP Cat6" data-price="420,00">
+              <strong>Cabo UTP Cat6</strong>
+              <span>5 caixas <span class="financial-content">· R$ 420,00</span></span>
+            </button>
+            <button class="product-card" data-product="Controle remoto TX" data-price="58,00">
+              <strong>Controle remoto TX</strong>
+              <span>24 em estoque <span class="financial-content">· R$ 58,00</span></span>
+            </button>
+          </div>
+          <label>
+            Quantidade
+            <input class="product-qty" type="number" value="1" min="1" />
+          </label>
+          <button class="primary-button wide add-product-button">Solicitar material</button>
+
+          <div class="client-products">
+            <div class="client-products-head">
+              <strong>Solicitacoes nesta OS</strong>
+              <span class="client-total financial-content">R$ 48,00</span>
+            </div>
+            <div class="client-product-list">
+              <div class="client-product-row">
+                <span>1x Fonte 12V 2A</span>
+                <strong class="financial-content">R$ 48,00</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="material-approval-box">
+            <div class="client-products-head">
+              <strong>Aprovacao do estoque</strong>
+              <span class="pill amber material-pending-count">0 pendentes</span>
+            </div>
+            <div class="material-request-list">
+              <small>Nenhuma solicitacao pendente.</small>
+            </div>
+          </div>
+        </section>
+
+        <section class="mobile-tech-notes">
+          <div class="section-heading compact">
+            <div>
+              <span>Observacoes tecnicas</span>
+              <h2>Servico executado</h2>
+            </div>
+            <span class="pill teal">Historico</span>
+          </div>
+          <textarea class="service-notes-input" rows="4" placeholder="Descreva o que foi executado, testes feitos e orientacoes ao cliente."></textarea>
+          <button class="secondary-button wide save-service-note-button" type="button">Salvar observacao</button>
+          <small class="service-note-status">As observacoes ficam vinculadas ao historico da OS.</small>
+        </section>
+
+        <section class="mobile-checklist">
+          <div class="section-heading compact">
+            <div>
+              <span>Obrigatorio para finalizar</span>
+              <h2>Conclusao da OS</h2>
+            </div>
+            <span class="pill amber completion-status">Pendente</span>
+          </div>
+
+          <div class="photo-proof-grid" aria-label="Fotos obrigatorias do servico">
+            <button class="photo-proof captured" data-photo="1">
+              <span>Foto 1</span>
+              <strong>Antes</strong>
+            </button>
+            <button class="photo-proof captured" data-photo="2">
+              <span>Foto 2</span>
+              <strong>Durante</strong>
+            </button>
+            <button class="photo-proof" data-photo="3">
+              <span>Foto 3</span>
+              <strong>Depois</strong>
+            </button>
+          </div>
+
+          <button class="secondary-button wide capture-photo-button">Adicionar foto restante</button>
+          <input class="photo-upload-input" type="file" accept="image/*" capture="environment" hidden />
+
+          <div class="signature-box" aria-label="Coletar assinatura do cliente">
+            <div class="signature-box-head">
+              <span>Assinatura do cliente</span>
+              <strong class="signature-line">Pendente</strong>
+            </div>
+            <canvas class="signature-canvas" width="620" height="220" aria-label="Area para assinatura"></canvas>
+            <div class="signature-actions">
+              <button class="secondary-button clear-signature-button" type="button">Limpar</button>
+              <button class="primary-button confirm-signature-button" type="button" disabled>Confirmar assinatura</button>
+            </div>
+          </div>
+
+          <div class="tracker-chip-box">
+            <label>
+              ID CHIP
+              <input class="tracker-chip-input" type="text" inputmode="text" autocomplete="off" placeholder="8955 0400 1234 5678 9012" />
+            </label>
+            <button class="secondary-button verify-chip-button wide" type="button">Contabilizar ID CHIP</button>
+            <small class="tracker-chip-status">ID CHIP pendente</small>
+          </div>
+
+          <button class="primary-button wide finish-os-button" disabled>Concluir OS</button>
+        </section>
+
+        <section class="mobile-client-history">
+          <div class="section-heading compact">
+            <div>
+              <span>Historico do cliente</span>
+              <h2>OS anteriores</h2>
+            </div>
+            <span class="pill teal">2 OS</span>
+          </div>
+          <div class="mobile-history-list">
+            <article>
+              <strong>OS-0987 - Finalizada</strong>
+              <span>Troca de sensor magnetico. 3 fotos e assinatura do Sindico.</span>
+            </article>
+            <article>
+              <strong>OS-0912 - Finalizada</strong>
+              <span>Preventiva do portao. Orientado cliente sobre bateria.</span>
+            </article>
+          </div>
+        </section>
+
+        <section class="mobile-advanced-tools">
+          <div class="section-heading compact">
+            <div>
+              <span>Recursos avancados</span>
+              <h2>Rastreabilidade em campo</h2>
+            </div>
+            <span class="pill amber">Offline pronto</span>
+          </div>
+          <div class="advanced-tool-grid">
+            <button class="secondary-button scan-os-qr-button" type="button">Scanner QR OS</button>
+            <button class="secondary-button sync-offline-button" type="button">Sincronizar</button>
+            <button class="secondary-button chat-supervisor-button" type="button">Chat supervisor</button>
+            <button class="secondary-button audit-button" type="button">Auditoria</button>
+          </div>
+          <div class="advanced-status-card">
+            <strong class="offline-sync-status">Fila local vazia</strong>
+            <small class="notification-status">Notificacoes aguardando permissao do navegador.</small>
+          </div>
+          <div class="os-qr-card" hidden>
+            <div class="qr-label os-qr-label" aria-label="QR Code da OS"></div>
+            <label>
+              Abrir OS pelo QR/codigo
+              <input class="os-qr-input" type="text" placeholder="OS-1048" />
+            </label>
+            <button class="secondary-button wide open-os-by-qr-button" type="button">Abrir OS</button>
+          </div>
+          <div class="chat-card" hidden>
+            <div class="chat-thread">
+              <small>Supervisor: envie uma mensagem curta sobre a OS.</small>
+            </div>
+            <label>
+              Mensagem
+              <input class="chat-input" type="text" placeholder="Ex.: preciso de apoio com o portao" />
+            </label>
+            <button class="secondary-button wide send-chat-button" type="button">Enviar mensagem</button>
+          </div>
+          <div class="audit-card" hidden>
+            <div class="audit-log-list"></div>
+          </div>
+          <small>Novas OS, fotos, GPS e acoes ficam registradas para sincronizacao e auditoria.</small>
+        </section>
+
+        <nav class="bottom-nav" aria-label="Menu do tecnico">
+          <button class="active">OS</button>
+          <button>Agenda</button>
+          <button class="tracking-only">Rota</button>
+          <button class="stock-only">Estoque</button>
+          <button>Perfil</button>
+        </nav>
+      </main>
+    </div>
+
+    <dialog class="new-os-dialog" aria-label="Cadastrar nova ordem de servico">
+      <form class="new-os-form" method="dialog">
+        <div class="dialog-head">
+          <div>
+            <span>Cadastro operacional</span>
+            <h2>Nova OS</h2>
+          </div>
+          <button class="icon-button close-new-os" type="button" aria-label="Fechar">×</button>
+        </div>
+
+        <div class="form-grid two">
+          <label>
+            Cliente
+            <input class="new-os-client" type="text" placeholder="Nome do cliente" required />
+          </label>
+          <label>
+            Numero da OS
+            <input class="new-os-code" type="text" placeholder="Gerado automaticamente" />
+          </label>
+          <label>
+            Descricao
+            <input class="new-os-description" type="text" placeholder="Servico solicitado" required />
+          </label>
+          <label>
+            Horario
+            <input class="new-os-time" type="time" value="09:00" required />
+          </label>
+          <label>
+            Equipe
+            <select class="new-os-team" required>
+              <option>Sem equipe</option>
+              <option>Equipe 1</option>
+              <option>Equipe 2</option>
+              <option>Equipe 3</option>
+              <option>Equipe 4</option>
+              <option>Equipe 5</option>
+            </select>
+          </label>
+          <label>
+            Prioridade
+            <select class="new-os-priority" required>
+              <option value="normal">Normal</option>
+              <option value="warning">Media</option>
+              <option value="high">Alta</option>
+            </select>
+          </label>
+          <label>
+            Status
+            <select class="new-os-status" required>
+              <option value="pending">Pendente</option>
+              <option value="scheduled">Agendada</option>
+              <option value="completed">Concluida</option>
+            </select>
+          </label>
+          <label>
+            Tecnico
+            <input class="new-os-tech" type="text" placeholder="Responsavel" />
+          </label>
+        </div>
+
+        <div class="dialog-actions">
+          <small class="new-os-status-copy">A OS entra na fila e, se tiver equipe, aparece na agenda da equipe.</small>
+          <button class="secondary-button close-new-os" type="button">Cancelar</button>
+          <button class="primary-button" type="submit">Adicionar OS</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="monthly-schedule-dialog" aria-label="Agendar ordem de servico mensalmente">
+      <form class="monthly-schedule-form" method="dialog">
+        <div class="dialog-head">
+          <div>
+            <span>Agenda mensal</span>
+            <h2>Agendar OS</h2>
+          </div>
+          <button class="icon-button close-monthly-schedule" type="button" aria-label="Fechar">Ã—</button>
+        </div>
+
+        <div class="form-grid two">
+          <label>
+            Mes de referencia
+            <input class="monthly-schedule-month" type="month" required />
+          </label>
+          <label>
+            Data do atendimento
+            <input class="monthly-schedule-date" type="date" required />
+          </label>
+          <label>
+            Horario
+            <input class="monthly-schedule-time" type="time" value="09:00" required />
+          </label>
+          <label>
+            Equipe
+            <select class="monthly-schedule-team" required>
+              <option>Equipe 1</option>
+              <option>Equipe 2</option>
+              <option>Equipe 3</option>
+              <option>Equipe 4</option>
+              <option>Equipe 5</option>
+            </select>
+          </label>
+          <label>
+            Cliente
+            <input class="monthly-schedule-client" type="text" placeholder="Nome do cliente" required />
+          </label>
+          <label>
+            Tecnico
+            <input class="monthly-schedule-tech" type="text" placeholder="Responsavel" />
+          </label>
+          <label>
+            Prioridade
+            <select class="monthly-schedule-priority" required>
+              <option value="normal">Normal</option>
+              <option value="warning">Media</option>
+              <option value="high">Alta</option>
+            </select>
+          </label>
+          <label>
+            Numero da OS
+            <input class="monthly-schedule-code" type="text" placeholder="Gerado automaticamente" />
+          </label>
+          <label class="form-span">
+            Descricao
+            <input class="monthly-schedule-description" type="text" placeholder="Servico a executar" required />
+          </label>
+        </div>
+
+        <div class="dialog-actions">
+          <small class="monthly-schedule-status">A OS sera vinculada ao mes, equipe e horario informados.</small>
+          <button class="secondary-button close-monthly-schedule" type="button">Cancelar</button>
+          <button class="primary-button" type="submit">Agendar OS</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="team-login-dialog" aria-label="Entrar com conta da equipe">
+      <form class="team-login-form" method="dialog">
+        <div class="dialog-head">
+          <div>
+            <span>Acesso por equipe</span>
+            <h2>Conta da equipe</h2>
+          </div>
+          <button class="icon-button close-team-login" type="button" aria-label="Fechar">×</button>
+        </div>
+
+        <div class="form-grid two">
+          <label>
+            Equipe
+            <select class="login-team-select" required>
+              <option>Equipe 1</option>
+              <option>Equipe 2</option>
+              <option>Equipe 3</option>
+              <option>Equipe 4</option>
+              <option>Equipe 5</option>
+            </select>
+          </label>
+          <label>
+            Usuario
+            <input class="login-user-input" type="text" autocomplete="username" required />
+          </label>
+          <label>
+            Senha
+            <input class="login-password-input" type="password" autocomplete="current-password" required />
+          </label>
+          <div class="login-hint-card">
+            <strong>Senha inicial</strong>
+            <small class="team-login-hint">Equipe 1: usuario equipe1, senha equipe1</small>
+          </div>
+        </div>
+
+        <div class="dialog-actions">
+          <small class="team-login-status">Ao entrar, a equipe visualiza apenas as proprias OS.</small>
+          <button class="secondary-button close-team-login" type="button">Cancelar</button>
+          <button class="primary-button" type="submit">Entrar</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+    <script src="./app.js?v=simple-ux-1"></script>
   </body>
 </html>

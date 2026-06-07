@@ -2,8 +2,6 @@
 
 Sistema para controle de ordens de servico, estoque, agenda mensal por equipe, solicitacao de material, fotos, assinatura do cliente, historico do cliente, relatorios e faturamento administrativo.
 
-O frontend atual foi refeito em React + Tailwind, carregado diretamente pelo `index.html` para manter o prototipo simples de abrir localmente.
-
 ## O que ja existe neste prototipo
 
 - Interface desktop administrativa.
@@ -25,7 +23,6 @@ O frontend atual foi refeito em React + Tailwind, carregado diretamente pelo `in
 
 ```text
 index.html
-src/App.jsx
 styles.css
 app.js
 logo.jpg
@@ -45,21 +42,9 @@ server/
   AUTHORIZATION.md
 ```
 
-## Como abrir o prototipo React + Tailwind
+## Como abrir o prototipo
 
 Abra `index.html` no navegador.
-
-Tambem pode servir a pasta localmente:
-
-```bash
-python -m http.server 8081
-```
-
-E abrir:
-
-```text
-http://127.0.0.1:8081/index.html
-```
 
 ## Como subir banco e API
 
