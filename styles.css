@@ -44,6 +44,10 @@ body:not(.is-admin) [data-admin-only="true"] {
   display: none !important;
 }
 
+body:not(.role-tecnico) .team-access-control {
+  display: none !important;
+}
+
 button,
 input,
 select {
@@ -197,6 +201,7 @@ h2 {
 }
 
 .role-switch,
+.team-access-control,
 .report-actions label {
   display: grid;
   gap: 4px;
@@ -205,6 +210,7 @@ h2 {
 }
 
 .role-switch select,
+.team-access-control select,
 .report-actions select {
   min-height: 40px;
   border: 1px solid var(--line);
@@ -212,6 +218,11 @@ h2 {
   padding: 0 10px;
   background: #fff;
   color: var(--ink);
+}
+
+.mobile-team-control {
+  margin-left: auto;
+  min-width: 118px;
 }
 
 .report-actions {
@@ -1659,6 +1670,18 @@ th {
   .mobile-os-row.active {
     border-color: var(--dark);
     background: #fff;
+  }
+
+  .mobile-os-empty {
+    padding: 14px;
+    border: 1px dashed #bfc7d1;
+    border-radius: 8px;
+    background: var(--panel-soft);
+  }
+
+  .mobile-os-empty strong,
+  .mobile-os-empty small {
+    display: block;
   }
 
   .mobile-os-row small {

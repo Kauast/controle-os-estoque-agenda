@@ -1,5 +1,6 @@
 const navButtons = document.querySelectorAll(".nav-list button, .mobile-tabs button, .bottom-nav button");
 const roleSelect = document.querySelector(".role-select");
+const teamAccessSelects = document.querySelectorAll(".team-access-select");
 const financeNavButton = document.querySelector('.nav-list button[data-admin-only="true"]');
 const storageKey = "controle-os-local-v2";
 
@@ -12,6 +13,8 @@ function loadLocalState() {
 }
 
 let localState = loadLocalState();
+let appliedRole = "";
+let appliedTeam = "";
 
 function saveLocalState() {
   localStorage.setItem(storageKey, JSON.stringify(localState));
@@ -56,6 +59,9 @@ function notifyLocal(message) {
 
 function setUserRole(role) {
   const isAdmin = role === "admin";
+  appliedRole = role;
+  document.body.classList.remove("role-admin", "role-estoque", "role-tecnico", "role-vendedor");
+  document.body.classList.add(`role-${role}`);
   document.body.classList.toggle("is-admin", isAdmin);
 
   if (!isAdmin && document.body.classList.contains("finance-visible")) {
@@ -66,8 +72,58 @@ function setUserRole(role) {
 }
 
 const savedRole = localState.role || roleSelect?.value || "admin";
-if (roleSelect) roleSelect.value = savedRole;
+  if (roleSelect) roleSelect.value = savedRole;
 setUserRole(savedRole);
+
+function getActiveTeam() {
+  return localState.activeTeam || teamAccessSelects[0]?.value || "Equipe 1";
+}
+
+function setActiveTeam(team, shouldRender = true) {
+  appliedTeam = team;
+  teamAccessSelects.forEach((select) => {
+    select.value = team;
+  });
+  updateLocalState("activeTeam", team);
+
+  if (shouldRender) {
+    renderOrderQueue?.();
+    renderDispatchBoard?.();
+    renderMobileOrders?.();
+    renderTeamReport?.();
+  }
+}
+
+setActiveTeam(localState.activeTeam || "Equipe 1", false);
+
+teamAccessSelects.forEach((select) => {
+  select.addEventListener("change", () => {
+    setActiveTeam(select.value);
+    addAudit("Equipe do tecnico alterada", select.value);
+  });
+});
+
+function refreshAccessControls() {
+  const role = roleSelect?.value || appliedRole;
+  const team = teamAccessSelects[0]?.value || appliedTeam;
+
+  if (role && role !== appliedRole) {
+    setUserRole(role);
+    updateLocalState("role", role);
+    renderMaterialRequests?.();
+    renderOrderQueue?.();
+    renderDispatchBoard?.();
+    renderMobileOrders?.();
+    renderTeamReport?.();
+  }
+
+  if (team && team !== appliedTeam) {
+    setActiveTeam(team);
+  }
+}
+
+window.applyAccessFromForm = refreshAccessControls;
+window.setInterval(refreshAccessControls, 300);
 
 if (roleSelect) {
   roleSelect.addEventListener("change", () => {
@@ -75,6 +131,10 @@ if (roleSelect) {
     updateLocalState("role", roleSelect.value);
     addAudit("Perfil alterado", `Perfil ativo: ${roleSelect.value}`);
     renderMaterialRequests?.();
+    renderOrderQueue?.();
+    renderDispatchBoard?.();
+    renderMobileOrders?.();
+    renderTeamReport?.();
   });
 }
 
@@ -688,6 +748,7 @@ const newOsStatusCopy = document.querySelector(".new-os-status-copy");
 const teamReportBody = document.querySelector(".team-report-body");
 const teamReportFilter = document.querySelector(".team-report-filter");
 const completedTeamCount = document.querySelector(".completed-team-count");
+const mobileOsList = document.querySelector(".mobile-os-list");
 const teamCompletedBase = {
   "Equipe 1": 18,
   "Equipe 2": 14,
@@ -710,6 +771,23 @@ const defaultServiceOrders = [
 ];
 
 let serviceOrders = localState.serviceOrders || defaultServiceOrders;
+
+function canSeeAllOrders() {
+  return (roleSelect?.value || "admin") !== "tecnico";
+}
+
+function getVisibleServiceOrders() {
+  if (canSeeAllOrders()) return serviceOrders;
+  const activeTeam = getActiveTeam();
+  return serviceOrders.filter((order) => order.team === activeTeam);
+}
+
+function getOrderLabel(order) {
+  if (order.status === "completed") return { text: "Concluida", pill: "teal" };
+  if (order.priority === "high") return { text: "Alta", pill: "red" };
+  if (order.priority === "warning") return { text: "Pendente", pill: "amber" };
+  return { text: "Agenda", pill: "teal" };
+}
 
 function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (char) => ({
@@ -761,7 +839,17 @@ function upsertDispatchCard(order) {
 function renderDispatchBoard() {
   availableOrders?.querySelectorAll(".dispatch-card").forEach((card) => card.remove());
   document.querySelectorAll(".team-dropzone .dispatch-card").forEach((card) => card.remove());
-  serviceOrders.forEach(upsertDispatchCard);
+
+  const activeTeam = getActiveTeam();
+  const technicianView = !canSeeAllOrders();
+  document.querySelectorAll(".team-column").forEach((column) => {
+    column.hidden = technicianView && column.dataset.team !== activeTeam;
+  });
+  if (availableOrders) {
+    availableOrders.hidden = technicianView;
+  }
+
+  getVisibleServiceOrders().forEach(upsertDispatchCard);
   refreshDropzones();
 }
 
@@ -769,7 +857,7 @@ function renderOrderQueue() {
   if (!orderList) return;
 
   orderList.innerHTML = "";
-  serviceOrders
+  getVisibleServiceOrders()
     .slice()
     .sort((a, b) => getPriorityRank({ classList: { contains: (className) => getOrderClass(a) === className } }) - getPriorityRank({ classList: { contains: (className) => getOrderClass(b) === className } }) || getScheduleTime({ textContent: a.time }) - getScheduleTime({ textContent: b.time }))
     .forEach((order) => {
@@ -788,10 +876,39 @@ function renderOrderQueue() {
     });
 }
 
+function renderMobileOrders() {
+  if (!mobileOsList) return;
+
+  const orders = getVisibleServiceOrders()
+    .slice()
+    .sort((a, b) => getPriorityRank({ classList: { contains: (className) => getOrderClass(a) === className } }) - getPriorityRank({ classList: { contains: (className) => getOrderClass(b) === className } }) || getScheduleTime({ textContent: a.time }) - getScheduleTime({ textContent: b.time }));
+
+  if (orders.length === 0) {
+    mobileOsList.innerHTML = `
+      <article class="mobile-os-empty">
+        <strong>Nenhuma OS para ${escapeHtml(getActiveTeam())}</strong>
+        <small>Quando uma OS for vinculada a esta equipe, ela aparece aqui.</small>
+      </article>
+    `;
+    return;
+  }
+
+  mobileOsList.innerHTML = orders.map((order, index) => {
+    const label = getOrderLabel(order);
+    return `
+      <button class="mobile-os-row${index === 0 ? " active" : ""}" type="button" data-os-code="${escapeHtml(order.code)}">
+        <span class="pill ${label.pill}">${label.text}</span>
+        <strong>${escapeHtml(order.code)}</strong>
+        <small>${escapeHtml(order.client.replace(/^Cliente\s+/, ""))} - ${escapeHtml(order.team)} - ${order.time} - ${order.status === "completed" ? "Finalizada" : "Em aberto"}</small>
+      </button>
+    `;
+  }).join("");
+}
+
 function renderTeamReport() {
   if (!teamReportBody) return;
 
-  const selectedTeam = teamReportFilter?.value || "all";
+  const selectedTeam = canSeeAllOrders() ? (teamReportFilter?.value || "all") : getActiveTeam();
   const teams = selectedTeam === "all" ? Object.keys(teamCompletedBase) : [selectedTeam];
   const rows = teams.map((team) => {
     const completedNow = serviceOrders.filter((order) => order.team === team && order.status === "completed").length;
@@ -836,6 +953,7 @@ function addServiceOrder(order) {
   notifyLocal(`Nova OS criada: ${order.code}`);
   renderOrderQueue();
   renderDispatchBoard();
+  renderMobileOrders();
   renderTeamReport();
 }
 
@@ -1351,6 +1469,7 @@ if (finishOsButton) {
         notifyLocal("OS-1048 concluida.");
         renderOrderQueue();
         renderDispatchBoard();
+        renderMobileOrders();
         renderTeamReport();
       }
       currentOsCompletionRegistered = true;
@@ -1537,6 +1656,7 @@ if (trackerChipInput && localState.trackerChip) {
 updateCompletionState();
 renderOrderQueue();
 renderDispatchBoard();
+renderMobileOrders();
 renderTeamReport();
 renderSyncStatus();
 renderAuditLog();

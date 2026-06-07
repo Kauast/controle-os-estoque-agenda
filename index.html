@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Controle OS e Estoque</title>
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./styles.css?v=team-access-4" />
   </head>
   <body>
     <div class="app-shell">
@@ -44,11 +44,21 @@
           <div class="topbar-actions">
             <label class="role-switch">
               Perfil
-              <select class="role-select" aria-label="Perfil do usuario">
+              <select class="role-select" aria-label="Perfil do usuario" onchange="window.applyAccessFromForm && window.applyAccessFromForm()">
                 <option value="admin">Administrador</option>
                 <option value="estoque">Estoque</option>
                 <option value="tecnico">Tecnico</option>
                 <option value="vendedor">Vendedor</option>
+              </select>
+            </label>
+            <label class="team-access-control">
+              Equipe
+              <select class="team-access-select" aria-label="Equipe do tecnico" onchange="window.applyAccessFromForm && window.applyAccessFromForm()">
+                <option>Equipe 1</option>
+                <option>Equipe 2</option>
+                <option>Equipe 3</option>
+                <option>Equipe 4</option>
+                <option>Equipe 5</option>
               </select>
             </label>
             <button class="icon-button" aria-label="Pesquisar">⌕</button>
@@ -866,6 +876,16 @@
             <span>Area do tecnico</span>
             <strong>Minhas OS</strong>
           </div>
+          <label class="team-access-control mobile-team-control">
+            Equipe
+            <select class="team-access-select" aria-label="Equipe do tecnico no mobile" onchange="window.applyAccessFromForm && window.applyAccessFromForm()">
+              <option>Equipe 1</option>
+              <option>Equipe 2</option>
+              <option>Equipe 3</option>
+              <option>Equipe 4</option>
+              <option>Equipe 5</option>
+            </select>
+          </label>
           <button class="icon-button" aria-label="Menu">☰</button>
         </header>
 
@@ -1241,6 +1261,6 @@
       </form>
     </dialog>
 
-    <script src="./app.js"></script>
+    <script src="./app.js?v=team-access-4"></script>
   </body>
 </html>
