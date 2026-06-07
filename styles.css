@@ -404,6 +404,84 @@ h2 {
   padding: 20px;
 }
 
+.monthly-schedule-card {
+  margin-top: 18px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-soft);
+}
+
+.monthly-schedule-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.monthly-schedule-head span,
+.monthly-schedule-row span,
+.monthly-schedule-row small,
+.monthly-schedule-empty small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.monthly-schedule-head strong,
+.monthly-schedule-row strong,
+.monthly-schedule-row span,
+.monthly-schedule-row small,
+.monthly-schedule-empty strong,
+.monthly-schedule-empty small {
+  display: block;
+}
+
+.monthly-schedule-list {
+  margin-top: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.monthly-schedule-row {
+  display: grid;
+  grid-template-columns: 68px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.monthly-schedule-row.high {
+  border-left: 4px solid var(--red);
+}
+
+.monthly-schedule-row.warning {
+  border-left: 4px solid var(--amber);
+}
+
+.monthly-schedule-date-badge {
+  min-height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--dark);
+  color: #fff;
+}
+
+.monthly-schedule-date-badge strong,
+.monthly-schedule-date-badge span {
+  color: inherit;
+}
+
+.monthly-schedule-empty {
+  padding: 12px;
+  border: 1px dashed #bfc7d1;
+  border-radius: 8px;
+  background: #fff;
+}
+
 .dispatch-board {
   margin-top: 20px;
   display: grid;
@@ -1721,6 +1799,7 @@ h2 {
 }
 
 .new-os-dialog,
+.monthly-schedule-dialog,
 .team-login-dialog {
   width: min(720px, calc(100vw - 32px));
   border: 1px solid var(--line);
@@ -1730,11 +1809,13 @@ h2 {
 }
 
 .new-os-dialog::backdrop,
+.monthly-schedule-dialog::backdrop,
 .team-login-dialog::backdrop {
   background: rgba(15, 17, 20, 0.42);
 }
 
 .new-os-form,
+.monthly-schedule-form,
 .team-login-form {
   display: grid;
   gap: 18px;
@@ -1761,6 +1842,7 @@ h2 {
 }
 
 .new-os-form label,
+.monthly-schedule-form label,
 .team-login-form label {
   display: grid;
   gap: 6px;
@@ -1770,6 +1852,8 @@ h2 {
 
 .new-os-form input,
 .new-os-form select,
+.monthly-schedule-form input,
+.monthly-schedule-form select,
 .team-login-form input,
 .team-login-form select {
   min-height: 42px;
@@ -1778,6 +1862,10 @@ h2 {
   padding: 0 10px;
   background: #fff;
   color: var(--ink);
+}
+
+.form-span {
+  grid-column: 1 / -1;
 }
 
 .login-hint-card {

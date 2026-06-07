@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Controle OS e Estoque</title>
-    <link rel="stylesheet" href="./styles.css?v=tracking-colors-1" />
+    <link rel="stylesheet" href="./styles.css?v=monthly-schedule-1" />
   </head>
   <body>
     <div class="app-shell">
@@ -105,6 +105,17 @@
                 <button>Semana</button>
                 <button>Mes</button>
               </div>
+            </div>
+
+            <div class="monthly-schedule-card">
+              <div class="monthly-schedule-head">
+                <div>
+                  <span>Planejamento mensal</span>
+                  <strong class="monthly-schedule-title">OS agendadas do mes</strong>
+                </div>
+                <button class="primary-button monthly-schedule-button" type="button">Agendar mes</button>
+              </div>
+              <div class="monthly-schedule-list" aria-label="OS agendadas no mes"></div>
             </div>
 
             <div class="dispatch-board">
@@ -1383,6 +1394,73 @@
       </form>
     </dialog>
 
+    <dialog class="monthly-schedule-dialog" aria-label="Agendar ordem de servico mensalmente">
+      <form class="monthly-schedule-form" method="dialog">
+        <div class="dialog-head">
+          <div>
+            <span>Agenda mensal</span>
+            <h2>Agendar OS</h2>
+          </div>
+          <button class="icon-button close-monthly-schedule" type="button" aria-label="Fechar">Ã—</button>
+        </div>
+
+        <div class="form-grid two">
+          <label>
+            Mes de referencia
+            <input class="monthly-schedule-month" type="month" required />
+          </label>
+          <label>
+            Data do atendimento
+            <input class="monthly-schedule-date" type="date" required />
+          </label>
+          <label>
+            Horario
+            <input class="monthly-schedule-time" type="time" value="09:00" required />
+          </label>
+          <label>
+            Equipe
+            <select class="monthly-schedule-team" required>
+              <option>Equipe 1</option>
+              <option>Equipe 2</option>
+              <option>Equipe 3</option>
+              <option>Equipe 4</option>
+              <option>Equipe 5</option>
+            </select>
+          </label>
+          <label>
+            Cliente
+            <input class="monthly-schedule-client" type="text" placeholder="Nome do cliente" required />
+          </label>
+          <label>
+            Tecnico
+            <input class="monthly-schedule-tech" type="text" placeholder="Responsavel" />
+          </label>
+          <label>
+            Prioridade
+            <select class="monthly-schedule-priority" required>
+              <option value="normal">Normal</option>
+              <option value="warning">Media</option>
+              <option value="high">Alta</option>
+            </select>
+          </label>
+          <label>
+            Numero da OS
+            <input class="monthly-schedule-code" type="text" placeholder="Gerado automaticamente" />
+          </label>
+          <label class="form-span">
+            Descricao
+            <input class="monthly-schedule-description" type="text" placeholder="Servico a executar" required />
+          </label>
+        </div>
+
+        <div class="dialog-actions">
+          <small class="monthly-schedule-status">A OS sera vinculada ao mes, equipe e horario informados.</small>
+          <button class="secondary-button close-monthly-schedule" type="button">Cancelar</button>
+          <button class="primary-button" type="submit">Agendar OS</button>
+        </div>
+      </form>
+    </dialog>
+
     <dialog class="team-login-dialog" aria-label="Entrar com conta da equipe">
       <form class="team-login-form" method="dialog">
         <div class="dialog-head">
@@ -1427,6 +1505,6 @@
     </dialog>
 
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-    <script src="./app.js?v=tracking-colors-1"></script>
+    <script src="./app.js?v=monthly-schedule-1"></script>
   </body>
 </html>

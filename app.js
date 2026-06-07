@@ -88,6 +88,8 @@ const buttonIconMap = {
   "enviar mensagem": "send",
   cancelar: "x",
   "adicionar os": "plus-circle",
+  "agendar mes": "calendar-plus",
+  "agendar os": "calendar-plus",
   entrar: "log-in"
 };
 
@@ -245,6 +247,7 @@ function setActiveTeam(team, shouldRender = true) {
     renderDispatchBoard?.();
     renderMobileOrders?.();
     renderTeamReport?.();
+    renderMonthlySchedule?.();
     renderTracking?.();
   }
 }
@@ -371,6 +374,7 @@ function refreshAccessControls() {
     renderDispatchBoard?.();
     renderMobileOrders?.();
     renderTeamReport?.();
+    renderMonthlySchedule?.();
     renderTracking?.();
   }
 
@@ -397,6 +401,7 @@ if (roleSelect) {
     renderDispatchBoard?.();
     renderMobileOrders?.();
     renderTeamReport?.();
+    renderMonthlySchedule?.();
     renderTracking?.();
   });
 }
@@ -1081,6 +1086,12 @@ const newOsButton = document.querySelector(".new-os-button");
 const newOsDialog = document.querySelector(".new-os-dialog");
 const newOsForm = document.querySelector(".new-os-form");
 const newOsStatusCopy = document.querySelector(".new-os-status-copy");
+const monthlyScheduleButton = document.querySelector(".monthly-schedule-button");
+const monthlyScheduleDialog = document.querySelector(".monthly-schedule-dialog");
+const monthlyScheduleForm = document.querySelector(".monthly-schedule-form");
+const monthlyScheduleList = document.querySelector(".monthly-schedule-list");
+const monthlyScheduleTitle = document.querySelector(".monthly-schedule-title");
+const monthlyScheduleStatus = document.querySelector(".monthly-schedule-status");
 const teamReportBody = document.querySelector(".team-report-body");
 const teamReportFilter = document.querySelector(".team-report-filter");
 const completedTeamCount = document.querySelector(".completed-team-count");
@@ -1107,6 +1118,31 @@ const defaultServiceOrders = [
 ];
 
 let serviceOrders = localState.serviceOrders || defaultServiceOrders;
+
+function getCurrentMonthValue() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function getCurrentDateValue() {
+  const now = new Date();
+  return `${getCurrentMonthValue()}-${String(now.getDate()).padStart(2, "0")}`;
+}
+
+function formatDateShort(dateValue) {
+  if (!dateValue) return "Sem data";
+  const [year, month, day] = dateValue.split("-");
+  if (!year || !month || !day) return dateValue;
+  return `${day}/${month}`;
+}
+
+function getMonthLabel(monthValue) {
+  if (!monthValue) return "mes atual";
+  const [year, month] = monthValue.split("-");
+  const date = new Date(Number(year), Number(month) - 1, 1);
+  if (Number.isNaN(date.getTime())) return monthValue;
+  return date.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+}
 
 function canSeeAllOrders() {
   return (roleSelect?.value || "admin") !== "tecnico";
@@ -1150,7 +1186,7 @@ function createDispatchCard(order) {
   card.innerHTML = `
     <strong>${escapeHtml(order.code)}</strong>
     <span>${escapeHtml(order.client.replace(/^Cliente\s+/, ""))}</span>
-    <small>${order.time} - ${order.status === "completed" ? "concluida" : "agendada"}</small>
+    <small>${order.scheduledDate ? `${formatDateShort(order.scheduledDate)} - ` : ""}${order.time} - ${order.status === "completed" ? "concluida" : "agendada"}</small>
   `;
   bindDispatchCard(card);
   return card;
@@ -1273,6 +1309,52 @@ function renderTeamReport() {
   }
 }
 
+function renderMonthlySchedule() {
+  if (!monthlyScheduleList) return;
+
+  const monthValue = document.querySelector(".monthly-schedule-month")?.value || getCurrentMonthValue();
+  const monthOrders = getVisibleServiceOrders()
+    .filter((order) => (order.scheduledMonth || order.scheduledDate?.slice(0, 7)) === monthValue)
+    .slice()
+    .sort((a, b) => {
+      const dateA = `${a.scheduledDate || ""}T${a.time || "00:00"}`;
+      const dateB = `${b.scheduledDate || ""}T${b.time || "00:00"}`;
+      return dateA.localeCompare(dateB);
+    });
+
+  if (monthlyScheduleTitle) {
+    monthlyScheduleTitle.textContent = `OS agendadas de ${getMonthLabel(monthValue)}`;
+  }
+
+  if (monthOrders.length === 0) {
+    monthlyScheduleList.innerHTML = `
+      <article class="monthly-schedule-empty">
+        <strong>Nenhuma OS agendada neste mes</strong>
+        <small>Use Agendar mes para distribuir as OS nas equipes.</small>
+      </article>
+    `;
+    return;
+  }
+
+  monthlyScheduleList.innerHTML = monthOrders.slice(0, 8).map((order) => {
+    const label = getOrderLabel(order);
+    return `
+      <article class="monthly-schedule-row ${getOrderClass(order)}">
+        <div class="monthly-schedule-date-badge">
+          <strong>${escapeHtml(formatDateShort(order.scheduledDate))}</strong>
+          <span>${escapeHtml(order.time || "--:--")}</span>
+        </div>
+        <div>
+          <strong>${escapeHtml(order.code)} - ${escapeHtml(order.client.replace(/^Cliente\s+/, ""))}</strong>
+          <span>${escapeHtml(order.description)}</span>
+          <small>${escapeHtml(order.team || "Sem equipe")} - ${escapeHtml(order.tech || "Sem tecnico")}</small>
+        </div>
+        <span class="pill ${label.pill}">${label.text}</span>
+      </article>
+    `;
+  }).join("");
+}
+
 function nextOrderCode() {
   const highest = serviceOrders.reduce((max, order) => {
     const number = Number(order.code.replace(/\D/g, ""));
@@ -1291,6 +1373,7 @@ function addServiceOrder(order) {
   renderDispatchBoard();
   renderMobileOrders();
   renderTeamReport();
+  renderMonthlySchedule();
   renderTracking?.();
 }
 
@@ -1302,8 +1385,73 @@ newOsButton?.addEventListener("click", () => {
   newOsDialog?.showModal();
 });
 
+monthlyScheduleButton?.addEventListener("click", () => {
+  const monthInput = document.querySelector(".monthly-schedule-month");
+  const dateInput = document.querySelector(".monthly-schedule-date");
+  const codeInput = document.querySelector(".monthly-schedule-code");
+  const teamInput = document.querySelector(".monthly-schedule-team");
+
+  if (monthInput && !monthInput.value) monthInput.value = getCurrentMonthValue();
+  if (dateInput && !dateInput.value) dateInput.value = getCurrentDateValue();
+  if (codeInput && !codeInput.value.trim()) codeInput.value = nextOrderCode();
+  if (teamInput) teamInput.value = getActiveTeam();
+  monthlyScheduleStatus.textContent = "Escolha a data, equipe e horario para agendar a OS.";
+  monthlyScheduleDialog?.showModal();
+});
+
+document.querySelectorAll(".close-monthly-schedule").forEach((button) => {
+  button.addEventListener("click", () => monthlyScheduleDialog?.close());
+});
+
+document.querySelector(".monthly-schedule-month")?.addEventListener("change", (event) => {
+  const dateInput = document.querySelector(".monthly-schedule-date");
+  if (dateInput && !dateInput.value.startsWith(event.target.value)) {
+    dateInput.value = `${event.target.value}-01`;
+  }
+  renderMonthlySchedule();
+});
+
 document.querySelectorAll(".close-new-os").forEach((button) => {
   button.addEventListener("click", () => newOsDialog?.close());
+});
+
+monthlyScheduleForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const monthInput = document.querySelector(".monthly-schedule-month");
+  const dateInput = document.querySelector(".monthly-schedule-date");
+  const timeInput = document.querySelector(".monthly-schedule-time");
+  const teamInput = document.querySelector(".monthly-schedule-team");
+  const clientInput = document.querySelector(".monthly-schedule-client");
+  const techInput = document.querySelector(".monthly-schedule-tech");
+  const priorityInput = document.querySelector(".monthly-schedule-priority");
+  const codeInput = document.querySelector(".monthly-schedule-code");
+  const descriptionInput = document.querySelector(".monthly-schedule-description");
+  const code = (codeInput.value.trim() || nextOrderCode()).toUpperCase();
+
+  if (serviceOrders.some((order) => order.code === code)) {
+    monthlyScheduleStatus.textContent = "Ja existe uma OS com esse numero.";
+    return;
+  }
+
+  addServiceOrder({
+    code,
+    client: clientInput.value.trim(),
+    description: descriptionInput.value.trim(),
+    tech: techInput.value.trim(),
+    time: timeInput.value,
+    team: teamInput.value,
+    priority: priorityInput.value,
+    status: "scheduled",
+    scheduledDate: dateInput.value,
+    scheduledMonth: monthInput.value || dateInput.value.slice(0, 7)
+  });
+
+  monthlyScheduleStatus.textContent = `${code} agendada para ${formatDateShort(dateInput.value)}.`;
+  monthlyScheduleForm.reset();
+  monthInput.value = getCurrentMonthValue();
+  dateInput.value = getCurrentDateValue();
+  codeInput.value = nextOrderCode();
+  monthlyScheduleDialog?.close();
 });
 
 newOsForm?.addEventListener("submit", (event) => {
@@ -2158,6 +2306,7 @@ renderOrderQueue();
 renderDispatchBoard();
 renderMobileOrders();
 renderTeamReport();
+renderMonthlySchedule();
 renderTracking();
 renderSyncStatus();
 renderAuditLog();
