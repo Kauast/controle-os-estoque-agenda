@@ -17,6 +17,8 @@ const trackingTeamLists = document.querySelectorAll(".tracking-team-list");
 const trackingVisibleCount = document.querySelector(".tracking-visible-count");
 const trackingUpdatedLabels = document.querySelectorAll(".tracking-updated-at");
 const refreshTrackingButtons = document.querySelectorAll(".refresh-tracking-button");
+const metricsGrid = document.querySelector(".metrics-grid");
+const workspacePanels = document.querySelectorAll(".workspace-grid > article");
 const storageKey = "controle-os-local-v2";
 const defaultTeamAccounts = [
   { team: "Equipe 1", user: "equipe1", password: "equipe1", members: "Bruno e Leo" },
@@ -277,34 +279,72 @@ if (roleSelect) {
   });
 }
 
+const desktopSections = {
+  painel: [".calendar-panel", ".orders-panel"],
+  agenda: [".calendar-panel"],
+  ordens: [".orders-panel"],
+  estoque: [".stock-panel"],
+  clientes: [".client-history-panel"],
+  equipe: [".team-panel"],
+  rastreamento: [".tracking-panel"],
+  financeiro: [".finance-panel"],
+  relatorios: [".reports-panel", ".profiles-panel"]
+};
+
+function getDesktopSectionKey(button) {
+  return button.textContent.trim().toLowerCase();
+}
+
+function setActiveDesktopNav(sectionKey) {
+  document.querySelectorAll(".nav-list button").forEach((item) => {
+    item.classList.toggle("active", getDesktopSectionKey(item) === sectionKey);
+  });
+}
+
+function showDesktopSection(sectionKey, shouldScroll = true) {
+  const selectors = desktopSections[sectionKey] || desktopSections.painel;
+
+  if (metricsGrid) {
+    metricsGrid.hidden = sectionKey !== "painel";
+  }
+
+  workspacePanels.forEach((panel) => {
+    panel.hidden = !selectors.some((selector) => panel.matches(selector));
+  });
+
+  document.body.classList.toggle("finance-visible", sectionKey === "financeiro");
+  setActiveDesktopNav(sectionKey);
+
+  if (!shouldScroll) return;
+
+  if (sectionKey === "painel") {
+    metricsGrid?.scrollIntoView({ behavior: "smooth", block: "start" });
+    return;
+  }
+
+  document.querySelector(selectors[0])?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
 navButtons.forEach((button) => {
   button.addEventListener("click", () => {
     if (button.dataset.adminOnly === "true" && !document.body.classList.contains("is-admin")) return;
 
-    const group = button.parentElement.querySelectorAll("button");
-    group.forEach((item) => item.classList.remove("active"));
-    button.classList.add("active");
-
     if (button.closest(".nav-list")) {
-      const isFinanceSection = button.textContent.trim().toLowerCase() === "financeiro";
-      document.body.classList.toggle("finance-visible", isFinanceSection);
-      const sectionTarget = {
-        painel: ".metrics-grid",
-        agenda: ".calendar-panel",
-        ordens: ".orders-panel",
-        estoque: ".stock-panel",
-        clientes: ".client-history-panel",
-        equipe: ".team-panel",
-        rastreamento: ".tracking-panel",
-        financeiro: ".finance-panel",
-        relatorios: ".reports-panel"
-      }[button.textContent.trim().toLowerCase()];
-      if (sectionTarget) document.querySelector(sectionTarget)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      showDesktopSection(getDesktopSectionKey(button));
     } else if (button.closest(".bottom-nav") && button.textContent.trim().toLowerCase() === "rota") {
+      const group = button.parentElement.querySelectorAll("button");
+      group.forEach((item) => item.classList.remove("active"));
+      button.classList.add("active");
       document.querySelector(".mobile-tracking-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      const group = button.parentElement.querySelectorAll("button");
+      group.forEach((item) => item.classList.remove("active"));
+      button.classList.add("active");
     }
   });
 });
+
+showDesktopSection("painel", false);
 
 document.querySelectorAll(".day").forEach((day) => {
   day.addEventListener("click", () => {
