@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Controle OS e Estoque</title>
-    <link rel="stylesheet" href="./styles.css?v=modern-ux-1" />
+    <link rel="stylesheet" href="./styles.css?v=simple-ux-1" />
   </head>
   <body>
     <div class="app-shell">
@@ -18,15 +18,15 @@
         </div>
 
         <nav class="nav-list" aria-label="Menu principal">
-          <button class="active">Painel</button>
-          <button>Agenda</button>
-          <button>Ordens</button>
+          <button class="active dashboard-nav">Painel</button>
+          <button class="operations-nav">Agenda</button>
+          <button class="operations-nav">Ordens</button>
           <button class="stock-only">Estoque</button>
           <button class="client-access-only">Clientes</button>
-          <button>Equipe</button>
+          <button class="team-admin-nav">Equipe</button>
           <button class="tracking-only">Rastreamento</button>
           <button data-admin-only="true">Financeiro</button>
-          <button>Relatorios</button>
+          <button class="reports-access-only">Relatorios</button>
         </nav>
 
         <div class="sidebar-summary">
@@ -40,7 +40,7 @@
         <header class="topbar">
           <div>
             <p>Gestao operacional</p>
-            <h1>Agenda mensal, OS e estoque</h1>
+            <h1>Painel operacional</h1>
           </div>
           <div class="topbar-actions">
             <label class="role-switch">
@@ -63,7 +63,7 @@
               </select>
             </label>
             <button class="icon-button" aria-label="Pesquisar">⌕</button>
-            <button class="secondary-button">Exportar</button>
+            <button class="secondary-button desktop-utility-action">Exportar</button>
             <button class="secondary-button team-login-button" type="button">Conta equipe</button>
             <button class="primary-button new-os-button">Nova OS</button>
             <span class="active-account-label">Administrador</span>
@@ -500,7 +500,7 @@
             </div>
           </article>
 
-          <article class="reports-panel admin-only" aria-label="Relatorios operacionais">
+          <article class="reports-panel reports-access-only" aria-label="Relatorios operacionais">
             <div class="section-heading">
               <div>
                 <span>Gestao e supervisao</span>
@@ -1505,6 +1505,6 @@
     </dialog>
 
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-    <script src="./app.js?v=modern-ux-1"></script>
+    <script src="./app.js?v=simple-ux-1"></script>
   </body>
 </html>

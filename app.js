@@ -19,6 +19,10 @@ const trackingUpdatedLabels = document.querySelectorAll(".tracking-updated-at");
 const refreshTrackingButtons = document.querySelectorAll(".refresh-tracking-button");
 const metricsGrid = document.querySelector(".metrics-grid");
 const workspacePanels = document.querySelectorAll(".workspace-grid > article");
+const pageContext = document.querySelector(".topbar p");
+const pageTitle = document.querySelector(".topbar h1");
+const sidebarSummaryTitle = document.querySelector(".sidebar-summary strong");
+const sidebarSummaryDetail = document.querySelector(".sidebar-summary small");
 const storageKey = "controle-os-local-v2";
 const defaultTeamAccounts = [
   { team: "Equipe 1", user: "equipe1", password: "equipe1", members: "Bruno e Leo" },
@@ -98,6 +102,41 @@ const iconOnlyMap = {
   Menu: "menu",
   Fechar: "x"
 };
+
+const roleViewCopy = {
+  admin: {
+    context: "Gestao geral",
+    title: "Painel operacional",
+    summary: "Visao completa da operacao",
+    detail: "Agenda, estoque, equipes e relatorios"
+  },
+  atendimento: {
+    context: "Atendimento",
+    title: "Agenda e OS",
+    summary: "Equipes e OS em foco",
+    detail: "Agenda, clientes, rotas e relatorios"
+  },
+  estoque: {
+    context: "Almoxarifado",
+    title: "Estoque",
+    summary: "Controle de materiais",
+    detail: "Entradas, saidas, QR Code e alertas"
+  },
+  tecnico: {
+    context: "Tecnico",
+    title: "Minhas OS",
+    summary: "OS da equipe logada",
+    detail: "Atendimentos, fotos, assinatura e ID CHIP"
+  }
+};
+
+function updateRoleCopy(role) {
+  const copy = roleViewCopy[role] || roleViewCopy.admin;
+  if (pageContext) pageContext.textContent = copy.context;
+  if (pageTitle) pageTitle.textContent = copy.title;
+  if (sidebarSummaryTitle) sidebarSummaryTitle.textContent = copy.summary;
+  if (sidebarSummaryDetail) sidebarSummaryDetail.textContent = copy.detail;
+}
 
 function normalizeButtonLabel(button) {
   return button.textContent.trim().replace(/\s+/g, " ").toLowerCase();
@@ -204,6 +243,7 @@ function setUserRole(role) {
   document.body.classList.remove("role-admin", "role-estoque", "role-tecnico", "role-vendedor", "role-atendimento");
   document.body.classList.add(`role-${role}`);
   document.body.classList.toggle("is-admin", isAdmin);
+  updateRoleCopy(role);
 
   if (!isAdmin && document.body.classList.contains("finance-visible")) {
     document.body.classList.remove("finance-visible");
@@ -373,6 +413,9 @@ function refreshAccessControls() {
   if (role && role !== appliedRole) {
     setUserRole(role);
     updateLocalState("role", role);
+    if (!canAccessSection(getActiveDesktopSection())) {
+      showDesktopSection(getDefaultDesktopSection(role), false);
+    }
     renderMaterialRequests?.();
     renderOrderQueue?.();
     renderDispatchBoard?.();
@@ -399,6 +442,9 @@ if (roleSelect) {
       saveLocalState();
     }
     addAudit("Perfil alterado", `Perfil ativo: ${roleSelect.value}`);
+    if (!canAccessSection(getActiveDesktopSection())) {
+      showDesktopSection(getDefaultDesktopSection(roleSelect.value), false);
+    }
     renderActiveAccount();
     renderMaterialRequests?.();
     renderOrderQueue?.();
@@ -441,6 +487,38 @@ function canAccessStock() {
   return role === "admin" || role === "estoque";
 }
 
+function canAccessReports() {
+  const role = roleSelect?.value || appliedRole || "admin";
+  return role === "admin" || role === "atendimento";
+}
+
+function canAccessTeamManagement() {
+  const role = roleSelect?.value || appliedRole || "admin";
+  return role === "admin" || role === "atendimento";
+}
+
+function getDefaultDesktopSection(role = roleSelect?.value || appliedRole || "admin") {
+  if (role === "estoque") return "estoque";
+  return "painel";
+}
+
+function canAccessSection(sectionKey) {
+  const role = roleSelect?.value || appliedRole || "admin";
+  if (["painel", "agenda", "ordens"].includes(sectionKey)) return role !== "estoque";
+  if (sectionKey === "estoque") return canAccessStock();
+  if (sectionKey === "clientes") return canAccessClientArea();
+  if (sectionKey === "equipe") return canAccessTeamManagement();
+  if (sectionKey === "rastreamento") return canAccessTracking();
+  if (sectionKey === "financeiro") return role === "admin";
+  if (sectionKey === "relatorios") return canAccessReports();
+  return true;
+}
+
+function getActiveDesktopSection() {
+  const activeButton = document.querySelector(".nav-list button.active");
+  return activeButton ? getDesktopSectionKey(activeButton) : getDefaultDesktopSection();
+}
+
 function setActiveDesktopNav(sectionKey) {
   document.querySelectorAll(".nav-list button").forEach((item) => {
     item.classList.toggle("active", getDesktopSectionKey(item) === sectionKey);
@@ -448,16 +526,8 @@ function setActiveDesktopNav(sectionKey) {
 }
 
 function showDesktopSection(sectionKey, shouldScroll = true) {
-  if (sectionKey === "rastreamento" && !canAccessTracking()) {
-    sectionKey = "painel";
-  }
-
-  if (sectionKey === "clientes" && !canAccessClientArea()) {
-    sectionKey = "painel";
-  }
-
-  if (sectionKey === "estoque" && !canAccessStock()) {
-    sectionKey = "painel";
+  if (!canAccessSection(sectionKey)) {
+    sectionKey = getDefaultDesktopSection();
   }
 
   const selectors = desktopSections[sectionKey] || desktopSections.painel;
@@ -488,10 +558,9 @@ navButtons.forEach((button) => {
     if (button.dataset.adminOnly === "true" && !document.body.classList.contains("is-admin")) return;
 
     if (button.closest(".nav-list")) {
-      if (button.classList.contains("tracking-only") && !canAccessTracking()) return;
-      if (button.classList.contains("client-access-only") && !canAccessClientArea()) return;
-      if (button.classList.contains("stock-only") && !canAccessStock()) return;
-      showDesktopSection(getDesktopSectionKey(button));
+      const sectionKey = getDesktopSectionKey(button);
+      if (!canAccessSection(sectionKey)) return;
+      showDesktopSection(sectionKey);
     } else if (button.closest(".bottom-nav") && button.textContent.trim().toLowerCase() === "rota") {
       if (!canAccessTracking()) return;
       const group = button.parentElement.querySelectorAll("button");
@@ -508,7 +577,7 @@ navButtons.forEach((button) => {
   });
 });
 
-showDesktopSection("painel", false);
+showDesktopSection(getDefaultDesktopSection(savedRole), false);
 
 document.querySelectorAll(".day").forEach((day) => {
   day.addEventListener("click", () => {

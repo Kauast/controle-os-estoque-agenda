@@ -60,6 +60,22 @@ body:not(.role-admin):not(.role-atendimento) .client-access-only {
   display: none !important;
 }
 
+body.role-estoque .dashboard-nav,
+body.role-estoque .operations-nav,
+body.role-estoque .team-admin-nav,
+body.role-estoque .reports-access-only,
+body.role-estoque .new-os-button,
+body.role-estoque .team-login-button,
+body.role-tecnico .team-admin-nav,
+body.role-tecnico .reports-access-only,
+body.role-tecnico .new-os-button,
+body:not(.role-admin):not(.role-atendimento) .reports-access-only,
+body:not(.role-admin):not(.role-atendimento) .team-admin-nav,
+.topbar-actions .icon-button[aria-label="Pesquisar"],
+.desktop-utility-action {
+  display: none !important;
+}
+
 button,
 input,
 select {
