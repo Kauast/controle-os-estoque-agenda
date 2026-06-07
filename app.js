@@ -2,7 +2,24 @@ const navButtons = document.querySelectorAll(".nav-list button, .mobile-tabs but
 const roleSelect = document.querySelector(".role-select");
 const teamAccessSelects = document.querySelectorAll(".team-access-select");
 const financeNavButton = document.querySelector('.nav-list button[data-admin-only="true"]');
+const teamLoginButtons = document.querySelectorAll(".team-login-button");
+const teamLoginDialog = document.querySelector(".team-login-dialog");
+const teamLoginForm = document.querySelector(".team-login-form");
+const loginTeamSelect = document.querySelector(".login-team-select");
+const loginUserInput = document.querySelector(".login-user-input");
+const loginPasswordInput = document.querySelector(".login-password-input");
+const teamLoginHint = document.querySelector(".team-login-hint");
+const teamLoginStatus = document.querySelector(".team-login-status");
+const activeAccountLabel = document.querySelector(".active-account-label");
+const teamAccountList = document.querySelector(".team-account-list");
 const storageKey = "controle-os-local-v2";
+const defaultTeamAccounts = [
+  { team: "Equipe 1", user: "equipe1", password: "equipe1", members: "Bruno e Leo" },
+  { team: "Equipe 2", user: "equipe2", password: "equipe2", members: "Ana e Rui" },
+  { team: "Equipe 3", user: "equipe3", password: "equipe3", members: "Marcos e Bia" },
+  { team: "Equipe 4", user: "equipe4", password: "equipe4", members: "Diego e Caio" },
+  { team: "Equipe 5", user: "equipe5", password: "equipe5", members: "Plantao" }
+];
 
 function loadLocalState() {
   try {
@@ -13,6 +30,7 @@ function loadLocalState() {
 }
 
 let localState = loadLocalState();
+let teamAccounts = localState.teamAccounts || defaultTeamAccounts;
 let appliedRole = "";
 let appliedTeam = "";
 
@@ -96,11 +114,106 @@ function setActiveTeam(team, shouldRender = true) {
 
 setActiveTeam(localState.activeTeam || "Equipe 1", false);
 
+function getTeamAccount(team) {
+  return teamAccounts.find((account) => account.team === team) || teamAccounts[0];
+}
+
+function renderActiveAccount() {
+  const activeAccount = localState.activeTeamAccount;
+  if (!activeAccountLabel) return;
+
+  if (activeAccount) {
+    activeAccountLabel.textContent = `${activeAccount.team} logada`;
+    return;
+  }
+
+  activeAccountLabel.textContent = roleSelect?.value === "admin" ? "Administrador" : "Sem conta de equipe";
+}
+
+function fillTeamLogin(team = getActiveTeam()) {
+  const account = getTeamAccount(team);
+  if (!account) return;
+
+  if (loginTeamSelect) loginTeamSelect.value = account.team;
+  if (loginUserInput) loginUserInput.value = account.user;
+  if (loginPasswordInput) loginPasswordInput.value = "";
+  if (teamLoginHint) teamLoginHint.textContent = `${account.team}: usuario ${account.user}, senha ${account.password}`;
+  if (teamLoginStatus) teamLoginStatus.textContent = "Ao entrar, a equipe visualiza apenas as proprias OS.";
+}
+
+function renderTeamAccounts() {
+  if (!teamAccountList) return;
+
+  teamAccountList.innerHTML = teamAccounts.map((account) => `
+    <article class="team-account-card">
+      <strong>${account.team}</strong>
+      <span>Usuario: ${account.user}</span>
+      <small>Senha inicial: ${account.password}</small>
+      <small>${account.members}</small>
+    </article>
+  `).join("");
+}
+
+function loginTeamAccount(account) {
+  localState.activeTeamAccount = {
+    team: account.team,
+    user: account.user,
+    members: account.members
+  };
+  saveLocalState();
+
+  if (roleSelect) roleSelect.value = "tecnico";
+  setUserRole("tecnico");
+  setActiveTeam(account.team);
+  updateLocalState("role", "tecnico");
+  addAudit("Conta de equipe acessada", `${account.team} entrou como ${account.user}`);
+  renderActiveAccount();
+  renderMaterialRequests?.();
+  notifyLocal(`${account.team} conectada.`);
+}
+
 teamAccessSelects.forEach((select) => {
   select.addEventListener("change", () => {
     setActiveTeam(select.value);
+    if (localState.activeTeamAccount) {
+      localState.activeTeamAccount.team = select.value;
+      localState.activeTeamAccount.user = getTeamAccount(select.value)?.user || localState.activeTeamAccount.user;
+      saveLocalState();
+      renderActiveAccount();
+    }
     addAudit("Equipe do tecnico alterada", select.value);
   });
+});
+
+teamLoginButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    fillTeamLogin(getActiveTeam());
+    teamLoginDialog?.showModal();
+  });
+});
+
+document.querySelectorAll(".close-team-login").forEach((button) => {
+  button.addEventListener("click", () => teamLoginDialog?.close());
+});
+
+loginTeamSelect?.addEventListener("change", () => {
+  fillTeamLogin(loginTeamSelect.value);
+});
+
+teamLoginForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const account = getTeamAccount(loginTeamSelect?.value);
+  const user = loginUserInput?.value.trim().toLowerCase();
+  const password = loginPasswordInput?.value || "";
+
+  if (!account || user !== account.user || password !== account.password) {
+    if (teamLoginStatus) teamLoginStatus.textContent = "Usuario ou senha da equipe incorretos.";
+    addAudit("Tentativa de acesso negada", loginTeamSelect?.value || "Equipe nao informada");
+    return;
+  }
+
+  loginTeamAccount(account);
+  teamLoginDialog?.close();
 });
 
 function refreshAccessControls() {
@@ -129,7 +242,12 @@ if (roleSelect) {
   roleSelect.addEventListener("change", () => {
     setUserRole(roleSelect.value);
     updateLocalState("role", roleSelect.value);
+    if (roleSelect.value !== "tecnico") {
+      delete localState.activeTeamAccount;
+      saveLocalState();
+    }
     addAudit("Perfil alterado", `Perfil ativo: ${roleSelect.value}`);
+    renderActiveAccount();
     renderMaterialRequests?.();
     renderOrderQueue?.();
     renderDispatchBoard?.();
@@ -1662,6 +1780,8 @@ renderSyncStatus();
 renderAuditLog();
 renderChatThread();
 renderSavedPhotos();
+renderActiveAccount();
+renderTeamAccounts();
 renderTechnicians();
 fillTechnicianForm(technicians[0]);
 sortServiceOrdersByPriority();

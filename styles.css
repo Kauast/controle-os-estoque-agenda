@@ -225,6 +225,19 @@ h2 {
   min-width: 118px;
 }
 
+.active-account-label {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0 10px;
+  background: var(--panel-soft);
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
 .report-actions {
   display: flex;
   align-items: end;
@@ -916,6 +929,41 @@ h2 {
   line-height: 1.35;
 }
 
+.team-account-panel {
+  margin-top: 18px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-soft);
+}
+
+.team-account-list {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.team-account-card {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.team-account-card strong,
+.team-account-card span,
+.team-account-card small {
+  display: block;
+}
+
+.team-account-card span,
+.team-account-card small {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
 .client-history-list {
   margin-top: 18px;
   display: grid;
@@ -1246,7 +1294,8 @@ h2 {
   color: var(--dark);
 }
 
-.new-os-dialog {
+.new-os-dialog,
+.team-login-dialog {
   width: min(720px, calc(100vw - 32px));
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -1254,11 +1303,13 @@ h2 {
   box-shadow: 0 30px 70px rgba(15, 17, 20, 0.28);
 }
 
-.new-os-dialog::backdrop {
+.new-os-dialog::backdrop,
+.team-login-dialog::backdrop {
   background: rgba(15, 17, 20, 0.42);
 }
 
-.new-os-form {
+.new-os-form,
+.team-login-form {
   display: grid;
   gap: 18px;
   padding: 20px;
@@ -1283,7 +1334,8 @@ h2 {
   font-size: 24px;
 }
 
-.new-os-form label {
+.new-os-form label,
+.team-login-form label {
   display: grid;
   gap: 6px;
   color: var(--muted);
@@ -1291,13 +1343,29 @@ h2 {
 }
 
 .new-os-form input,
-.new-os-form select {
+.new-os-form select,
+.team-login-form input,
+.team-login-form select {
   min-height: 42px;
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 0 10px;
   background: #fff;
   color: var(--ink);
+}
+
+.login-hint-card {
+  display: grid;
+  gap: 5px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-soft);
+}
+
+.login-hint-card small,
+.team-login-status {
+  color: var(--muted);
 }
 
 table {

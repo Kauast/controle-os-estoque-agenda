@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Controle OS e Estoque</title>
-    <link rel="stylesheet" href="./styles.css?v=team-access-4" />
+    <link rel="stylesheet" href="./styles.css?v=team-accounts-1" />
   </head>
   <body>
     <div class="app-shell">
@@ -63,7 +63,9 @@
             </label>
             <button class="icon-button" aria-label="Pesquisar">⌕</button>
             <button class="secondary-button">Exportar</button>
+            <button class="secondary-button team-login-button" type="button">Conta equipe</button>
             <button class="primary-button new-os-button">Nova OS</button>
+            <span class="active-account-label">Administrador</span>
           </div>
         </header>
 
@@ -650,6 +652,17 @@
                 <span>Ve apenas suas OS, atualiza status, adiciona fotos, assinatura e solicita material.</span>
               </article>
             </div>
+
+            <div class="team-account-panel">
+              <div class="report-heading">
+                <div>
+                  <span>Contas locais por equipe</span>
+                  <strong>Acesso do tecnico limitado a propria equipe</strong>
+                </div>
+                <button class="ghost-button team-login-button" type="button">Entrar como equipe</button>
+              </div>
+              <div class="team-account-list"></div>
+            </div>
           </article>
 
           <article class="client-history-panel admin-only" aria-label="Historico do cliente com fotos e assinatura">
@@ -886,6 +899,7 @@
               <option>Equipe 5</option>
             </select>
           </label>
+          <button class="secondary-button team-login-button mobile-login-button" type="button">Conta</button>
           <button class="icon-button" aria-label="Menu">☰</button>
         </header>
 
@@ -1261,6 +1275,49 @@
       </form>
     </dialog>
 
-    <script src="./app.js?v=team-access-4"></script>
+    <dialog class="team-login-dialog" aria-label="Entrar com conta da equipe">
+      <form class="team-login-form" method="dialog">
+        <div class="dialog-head">
+          <div>
+            <span>Acesso por equipe</span>
+            <h2>Conta da equipe</h2>
+          </div>
+          <button class="icon-button close-team-login" type="button" aria-label="Fechar">×</button>
+        </div>
+
+        <div class="form-grid two">
+          <label>
+            Equipe
+            <select class="login-team-select" required>
+              <option>Equipe 1</option>
+              <option>Equipe 2</option>
+              <option>Equipe 3</option>
+              <option>Equipe 4</option>
+              <option>Equipe 5</option>
+            </select>
+          </label>
+          <label>
+            Usuario
+            <input class="login-user-input" type="text" autocomplete="username" required />
+          </label>
+          <label>
+            Senha
+            <input class="login-password-input" type="password" autocomplete="current-password" required />
+          </label>
+          <div class="login-hint-card">
+            <strong>Senha inicial</strong>
+            <small class="team-login-hint">Equipe 1: usuario equipe1, senha equipe1</small>
+          </div>
+        </div>
+
+        <div class="dialog-actions">
+          <small class="team-login-status">Ao entrar, a equipe visualiza apenas as proprias OS.</small>
+          <button class="secondary-button close-team-login" type="button">Cancelar</button>
+          <button class="primary-button" type="submit">Entrar</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script src="./app.js?v=team-accounts-1"></script>
   </body>
 </html>
