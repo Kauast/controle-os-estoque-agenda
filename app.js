@@ -76,9 +76,10 @@ function notifyLocal(message) {
 }
 
 function setUserRole(role) {
+  if (role === "vendedor") role = "atendimento";
   const isAdmin = role === "admin";
   appliedRole = role;
-  document.body.classList.remove("role-admin", "role-estoque", "role-tecnico", "role-vendedor");
+  document.body.classList.remove("role-admin", "role-estoque", "role-tecnico", "role-vendedor", "role-atendimento");
   document.body.classList.add(`role-${role}`);
   document.body.classList.toggle("is-admin", isAdmin);
 
@@ -87,9 +88,15 @@ function setUserRole(role) {
     financeNavButton?.classList.remove("active");
     document.querySelector(".nav-list button:not([data-admin-only])")?.classList.add("active");
   }
+
+  if (role === "atendimento") {
+    document.body.classList.remove("finance-visible");
+    document.querySelectorAll(".stock-only.active, [data-admin-only].active").forEach((item) => item.classList.remove("active"));
+    document.querySelector(".nav-list button:not(.stock-only):not([data-admin-only])")?.classList.add("active");
+  }
 }
 
-const savedRole = localState.role || roleSelect?.value || "admin";
+const savedRole = (localState.role === "vendedor" ? "atendimento" : localState.role) || roleSelect?.value || "admin";
   if (roleSelect) roleSelect.value = savedRole;
 setUserRole(savedRole);
 
@@ -127,7 +134,13 @@ function renderActiveAccount() {
     return;
   }
 
-  activeAccountLabel.textContent = roleSelect?.value === "admin" ? "Administrador" : "Sem conta de equipe";
+  if (roleSelect?.value === "admin") {
+    activeAccountLabel.textContent = "Administrador";
+  } else if (roleSelect?.value === "atendimento") {
+    activeAccountLabel.textContent = "Atendimento";
+  } else {
+    activeAccountLabel.textContent = "Sem conta de equipe";
+  }
 }
 
 function fillTeamLogin(team = getActiveTeam()) {

@@ -48,6 +48,10 @@ body:not(.role-tecnico) .team-access-control {
   display: none !important;
 }
 
+body.role-atendimento .stock-only {
+  display: none !important;
+}
+
 button,
 input,
 select {
@@ -906,7 +910,7 @@ h2 {
 .profiles-grid {
   margin-top: 18px;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 12px;
 }
 
