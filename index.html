@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Controle OS e Estoque</title>
-    <link rel="stylesheet" href="./styles.css?v=atendimento-1" />
+    <link rel="stylesheet" href="./styles.css?v=tracking-1" />
   </head>
   <body>
     <div class="app-shell">
@@ -24,6 +24,7 @@
           <button class="stock-only">Estoque</button>
           <button>Clientes</button>
           <button>Equipe</button>
+          <button>Rastreamento</button>
           <button data-admin-only="true">Financeiro</button>
           <button>Relatorios</button>
         </nav>
@@ -733,6 +734,43 @@
             </div>
           </article>
 
+          <article class="tracking-panel" id="rastreamento-equipes" aria-label="Rastreamento das equipes em campo">
+            <div class="section-heading">
+              <div>
+                <span>Rastreamento</span>
+                <h2>Localizacao das equipes em campo</h2>
+              </div>
+              <div class="tracking-actions">
+                <span class="pill teal tracking-updated-at">Atualizado agora</span>
+                <button class="ghost-button refresh-tracking-button" type="button">Atualizar posicoes</button>
+              </div>
+            </div>
+
+            <div class="tracking-layout">
+              <section class="tracking-map" aria-label="Mapa operacional das equipes">
+                <div class="tracking-road main-road"></div>
+                <div class="tracking-road side-road one"></div>
+                <div class="tracking-road side-road two"></div>
+                <div class="tracking-map-label">
+                  <strong>Mapa operacional</strong>
+                  <small>Posicoes simuladas ate integrar GPS real</small>
+                </div>
+                <div class="tracking-marker-layer"></div>
+              </section>
+
+              <section class="tracking-side">
+                <div class="tracking-side-head">
+                  <div>
+                    <span>Equipes visiveis</span>
+                    <strong class="tracking-visible-count">5 equipes</strong>
+                  </div>
+                  <span class="pill amber">Supervisao</span>
+                </div>
+                <div class="tracking-team-list"></div>
+              </section>
+            </div>
+          </article>
+
           <article class="team-panel">
             <div class="section-heading">
               <div>
@@ -1008,6 +1046,27 @@
           </div>
         </section>
 
+        <section class="mobile-tracking-panel">
+          <div class="section-heading compact">
+            <div>
+              <span>Rastreamento</span>
+              <h2>Localizacao da equipe</h2>
+            </div>
+            <button class="ghost-button refresh-tracking-button" type="button">Atualizar</button>
+          </div>
+          <div class="tracking-map mobile-tracking-map" aria-label="Mapa da equipe no celular">
+            <div class="tracking-road main-road"></div>
+            <div class="tracking-road side-road one"></div>
+            <div class="tracking-road side-road two"></div>
+            <div class="tracking-map-label">
+              <strong>Equipe em campo</strong>
+              <small class="tracking-updated-at">Atualizado agora</small>
+            </div>
+            <div class="tracking-marker-layer mobile-tracking-marker-layer"></div>
+          </div>
+          <div class="tracking-team-list mobile-tracking-team-list"></div>
+        </section>
+
         <section class="mobile-form stock-only">
           <div class="section-heading compact">
             <div>
@@ -1205,6 +1264,7 @@
         <nav class="bottom-nav" aria-label="Menu do tecnico">
           <button class="active">OS</button>
           <button>Agenda</button>
+          <button>Rota</button>
           <button class="stock-only">Estoque</button>
           <button>Perfil</button>
         </nav>
@@ -1322,6 +1382,6 @@
       </form>
     </dialog>
 
-    <script src="./app.js?v=atendimento-1"></script>
+    <script src="./app.js?v=tracking-1"></script>
   </body>
 </html>

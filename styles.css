@@ -317,6 +317,7 @@ h2 {
 .reports-panel,
 .profiles-panel,
 .client-history-panel,
+.tracking-panel,
 .team-panel,
 .mobile-order,
 .mobile-form,
@@ -354,6 +355,7 @@ h2 {
     "reports reports"
     "profiles profiles"
     "history history"
+    "tracking tracking"
     "team team"
     "techapp techapp";
   gap: 16px;
@@ -1068,6 +1070,249 @@ h2 {
 .team-panel {
   grid-area: team;
   padding: 20px;
+}
+
+.tracking-panel {
+  grid-area: tracking;
+  padding: 20px;
+}
+
+.tracking-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tracking-layout {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.34fr);
+  gap: 14px;
+}
+
+.tracking-map {
+  position: relative;
+  min-height: 380px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background:
+    linear-gradient(90deg, rgba(18, 125, 117, 0.08) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(18, 125, 117, 0.08) 1px, transparent 1px),
+    linear-gradient(135deg, #eef7f5 0%, #f9fbfc 52%, #f2f4f7 100%);
+  background-size: 34px 34px, 34px 34px, auto;
+}
+
+.tracking-road {
+  position: absolute;
+  border-radius: 999px;
+  background: rgba(15, 17, 20, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.72);
+}
+
+.tracking-road.main-road {
+  left: -8%;
+  top: 52%;
+  width: 118%;
+  height: 34px;
+  transform: rotate(-8deg);
+}
+
+.tracking-road.side-road.one {
+  left: 28%;
+  top: -12%;
+  width: 28px;
+  height: 132%;
+  transform: rotate(24deg);
+}
+
+.tracking-road.side-road.two {
+  right: 16%;
+  top: 12%;
+  width: 24px;
+  height: 92%;
+  transform: rotate(-31deg);
+  opacity: 0.72;
+}
+
+.tracking-map-label {
+  position: absolute;
+  left: 14px;
+  top: 14px;
+  z-index: 2;
+  display: grid;
+  gap: 3px;
+  max-width: min(240px, calc(100% - 28px));
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 12px 28px rgba(15, 17, 20, 0.1);
+}
+
+.tracking-map-label small {
+  color: var(--muted);
+}
+
+.tracking-marker-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.tracking-marker {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  z-index: 4;
+  min-width: 122px;
+  min-height: 54px;
+  padding: 8px 10px 8px 32px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  text-align: left;
+  box-shadow: 0 14px 30px rgba(15, 17, 20, 0.16);
+  transform: translate(-16px, -18px);
+}
+
+.tracking-marker::before {
+  content: "";
+  position: absolute;
+  left: 10px;
+  top: 13px;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--teal);
+  box-shadow: 0 0 0 6px var(--teal-soft);
+}
+
+.tracking-marker.warning::before {
+  background: var(--amber);
+  box-shadow: 0 0 0 6px var(--amber-soft);
+}
+
+.tracking-marker.offline::before {
+  background: var(--red);
+  box-shadow: 0 0 0 6px var(--red-soft);
+}
+
+.tracking-marker strong,
+.tracking-marker small {
+  display: block;
+}
+
+.tracking-marker small {
+  margin-top: 2px;
+  color: var(--muted);
+}
+
+.tracking-marker.active,
+.tracking-marker:hover {
+  border-color: var(--dark);
+  transform: translate(-16px, -20px);
+}
+
+.tracking-side {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  min-width: 0;
+}
+
+.tracking-side-head,
+.tracking-team-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-soft);
+}
+
+.tracking-side-head {
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.tracking-side-head span,
+.tracking-team-card span,
+.tracking-team-card small {
+  color: var(--muted);
+}
+
+.tracking-team-list {
+  display: grid;
+  gap: 10px;
+}
+
+.tracking-team-card {
+  padding: 12px;
+  display: grid;
+  gap: 9px;
+}
+
+.tracking-team-card.active,
+.tracking-team-card:hover {
+  border-color: var(--dark);
+  background: #fff;
+}
+
+.tracking-team-card-head,
+.tracking-team-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.tracking-team-card-head strong,
+.tracking-team-card-head span,
+.tracking-team-card-foot strong,
+.tracking-team-card-foot small {
+  display: block;
+  min-width: 0;
+}
+
+.tracking-team-card-head span,
+.tracking-team-card-foot small {
+  font-size: 12px;
+}
+
+.tracking-team-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.tracking-team-meta div {
+  padding: 9px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.tracking-team-meta span,
+.tracking-team-meta strong {
+  display: block;
+}
+
+.tracking-team-meta span {
+  font-size: 12px;
+}
+
+.tracking-empty {
+  padding: 14px;
+  border: 1px dashed #bfc7d1;
+  border-radius: 8px;
+  background: var(--panel-soft);
+}
+
+.tracking-empty strong,
+.tracking-empty small {
+  display: block;
 }
 
 .technician-app-panel {
@@ -1796,9 +2041,26 @@ th {
   .mobile-os-detail,
   .mobile-tech-notes,
   .mobile-client-history,
+  .mobile-tracking-panel,
   .mobile-advanced-tools {
     display: grid;
     gap: 12px;
+  }
+
+  .mobile-tracking-panel {
+    padding: 16px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+  }
+
+  .mobile-tracking-map {
+    min-height: 270px;
+  }
+
+  .mobile-tracking-map .tracking-marker {
+    min-width: 112px;
   }
 
   .material-approval-box,
@@ -2209,7 +2471,7 @@ th {
 
   .bottom-nav {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 4px;
     padding: 6px;
     border: 1px solid var(--line);
@@ -2247,6 +2509,7 @@ th {
       "reports"
       "profiles"
       "history"
+      "tracking"
       "team"
       "techapp";
   }
@@ -2261,6 +2524,7 @@ th {
 
   .inventory-layout,
   .inventory-movement-grid,
+  .tracking-layout,
   .tech-app-desktop-flow {
     grid-template-columns: 1fr;
   }

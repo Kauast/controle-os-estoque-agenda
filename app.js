@@ -12,6 +12,11 @@ const teamLoginHint = document.querySelector(".team-login-hint");
 const teamLoginStatus = document.querySelector(".team-login-status");
 const activeAccountLabel = document.querySelector(".active-account-label");
 const teamAccountList = document.querySelector(".team-account-list");
+const trackingMarkerLayers = document.querySelectorAll(".tracking-marker-layer");
+const trackingTeamLists = document.querySelectorAll(".tracking-team-list");
+const trackingVisibleCount = document.querySelector(".tracking-visible-count");
+const trackingUpdatedLabels = document.querySelectorAll(".tracking-updated-at");
+const refreshTrackingButtons = document.querySelectorAll(".refresh-tracking-button");
 const storageKey = "controle-os-local-v2";
 const defaultTeamAccounts = [
   { team: "Equipe 1", user: "equipe1", password: "equipe1", members: "Bruno e Leo" },
@@ -116,6 +121,7 @@ function setActiveTeam(team, shouldRender = true) {
     renderDispatchBoard?.();
     renderMobileOrders?.();
     renderTeamReport?.();
+    renderTracking?.();
   }
 }
 
@@ -241,6 +247,7 @@ function refreshAccessControls() {
     renderDispatchBoard?.();
     renderMobileOrders?.();
     renderTeamReport?.();
+    renderTracking?.();
   }
 
   if (team && team !== appliedTeam) {
@@ -266,6 +273,7 @@ if (roleSelect) {
     renderDispatchBoard?.();
     renderMobileOrders?.();
     renderTeamReport?.();
+    renderTracking?.();
   });
 }
 
@@ -280,6 +288,20 @@ navButtons.forEach((button) => {
     if (button.closest(".nav-list")) {
       const isFinanceSection = button.textContent.trim().toLowerCase() === "financeiro";
       document.body.classList.toggle("finance-visible", isFinanceSection);
+      const sectionTarget = {
+        painel: ".metrics-grid",
+        agenda: ".calendar-panel",
+        ordens: ".orders-panel",
+        estoque: ".stock-panel",
+        clientes: ".client-history-panel",
+        equipe: ".team-panel",
+        rastreamento: ".tracking-panel",
+        financeiro: ".finance-panel",
+        relatorios: ".reports-panel"
+      }[button.textContent.trim().toLowerCase()];
+      if (sectionTarget) document.querySelector(sectionTarget)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else if (button.closest(".bottom-nav") && button.textContent.trim().toLowerCase() === "rota") {
+      document.querySelector(".mobile-tracking-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   });
 });
@@ -1086,6 +1108,7 @@ function addServiceOrder(order) {
   renderDispatchBoard();
   renderMobileOrders();
   renderTeamReport();
+  renderTracking?.();
 }
 
 teamReportFilter?.addEventListener("change", renderTeamReport);
@@ -1602,6 +1625,7 @@ if (finishOsButton) {
         renderDispatchBoard();
         renderMobileOrders();
         renderTeamReport();
+        renderTracking?.();
       }
       currentOsCompletionRegistered = true;
     }
@@ -1634,11 +1658,165 @@ const defaultTechnicians = [
 let technicians = localState.technicians || defaultTechnicians;
 
 const teamOrder = ["Equipe 1", "Equipe 2", "Equipe 3", "Equipe 4", "Equipe 5"];
+const defaultTeamLocations = [
+  { team: "Equipe 1", vehicle: "Carro 01", x: 22, y: 48, status: "Em atendimento", speed: 0, updated: "Agora" },
+  { team: "Equipe 2", vehicle: "Carro 02", x: 58, y: 35, status: "A caminho", speed: 38, updated: "Agora" },
+  { team: "Equipe 3", vehicle: "Carro 03", x: 42, y: 68, status: "Em rota", speed: 44, updated: "Agora" },
+  { team: "Equipe 4", vehicle: "Carro 04", x: 74, y: 54, status: "Agendada", speed: 18, updated: "Agora" },
+  { team: "Equipe 5", vehicle: "Plantao", x: 82, y: 23, status: "Disponivel", speed: 0, updated: "Agora" }
+];
+let teamLocations = Array.isArray(localState.teamLocations) ? localState.teamLocations : defaultTeamLocations;
+let activeTrackingTeam = getActiveTeam();
+
+function syncTrackingLocations() {
+  teamLocations = teamOrder.map((team) => {
+    const saved = teamLocations.find((location) => location.team === team);
+    const fallback = defaultTeamLocations.find((location) => location.team === team);
+    return { ...fallback, ...saved, team };
+  });
+  updateLocalState("teamLocations", teamLocations);
+  return teamLocations;
+}
 
 function getTeamMembers(team) {
   const members = technicians.filter((tech) => tech.team === team).map((tech) => tech.name);
   return members.length > 0 ? members.join(", ") : "Sem tecnico";
 }
+
+function getTeamCurrentOrder(team) {
+  const activeOrder = serviceOrders
+    .filter((order) => order.team === team && order.status !== "completed")
+    .sort((a, b) => getPriorityRank({ classList: { contains: (className) => getOrderClass(a) === className } }) - getPriorityRank({ classList: { contains: (className) => getOrderClass(b) === className } }) || getScheduleTime({ textContent: a.time }) - getScheduleTime({ textContent: b.time }))[0];
+  return activeOrder?.code || "Sem OS";
+}
+
+function getTrackingStatus(team, fallbackStatus) {
+  const teamTechs = technicians.filter((tech) => tech.team === team);
+  const busy = teamTechs.find((tech) => tech.status && tech.status !== "Disponivel");
+  return busy?.status || fallbackStatus || "Disponivel";
+}
+
+function getTrackingTone(status) {
+  const normalized = String(status || "").toLowerCase();
+  if (normalized.includes("offline")) return "offline";
+  if (normalized.includes("caminho") || normalized.includes("rota") || normalized.includes("agendada")) return "warning";
+  return "";
+}
+
+function getVisibleTeamLocations() {
+  const locations = syncTrackingLocations();
+  if (canSeeAllOrders()) return locations;
+  return locations.filter((location) => location.team === getActiveTeam());
+}
+
+function renderTracking() {
+  if (!trackingMarkerLayers.length && !trackingTeamLists.length) return;
+
+  const visibleLocations = getVisibleTeamLocations();
+  activeTrackingTeam = canSeeAllOrders() ? activeTrackingTeam : getActiveTeam();
+  if (!visibleLocations.some((location) => location.team === activeTrackingTeam)) {
+    activeTrackingTeam = visibleLocations[0]?.team || getActiveTeam();
+  }
+
+  const markerHtml = visibleLocations.map((location) => {
+    const status = getTrackingStatus(location.team, location.status);
+    const tone = getTrackingTone(status);
+    const os = getTeamCurrentOrder(location.team);
+    return `
+      <button class="tracking-marker ${tone}${location.team === activeTrackingTeam ? " active" : ""}" type="button" data-tracking-team="${escapeHtml(location.team)}" style="--x: ${Number(location.x)}%; --y: ${Number(location.y)}%;">
+        <strong>${escapeHtml(location.team)}</strong>
+        <small>${escapeHtml(location.vehicle)} - ${escapeHtml(status)}</small>
+      </button>
+    `;
+  }).join("");
+
+  const cardHtml = visibleLocations.length === 0 ? `
+    <article class="tracking-empty">
+      <strong>Nenhuma equipe visivel</strong>
+      <small>Entre com uma conta de equipe ou selecione um perfil com permissao.</small>
+    </article>
+  ` : visibleLocations.map((location) => {
+    const status = getTrackingStatus(location.team, location.status);
+    const tone = getTrackingTone(status);
+    const os = getTeamCurrentOrder(location.team);
+    return `
+      <button class="tracking-team-card ${location.team === activeTrackingTeam ? " active" : ""}" type="button" data-tracking-team="${escapeHtml(location.team)}">
+        <div class="tracking-team-card-head">
+          <div>
+            <strong>${escapeHtml(location.team)}</strong>
+            <span>${escapeHtml(getTeamMembers(location.team))}</span>
+          </div>
+          <span class="pill ${tone === "offline" ? "red" : tone === "warning" ? "amber" : "teal"}">${escapeHtml(status)}</span>
+        </div>
+        <div class="tracking-team-meta">
+          <div>
+            <span>Veiculo</span>
+            <strong>${escapeHtml(location.vehicle)}</strong>
+          </div>
+          <div>
+            <span>OS atual</span>
+            <strong>${escapeHtml(os)}</strong>
+          </div>
+          <div>
+            <span>Velocidade</span>
+            <strong>${Number(location.speed) || 0} km/h</strong>
+          </div>
+          <div>
+            <span>Ultimo sinal</span>
+            <strong>${escapeHtml(location.updated || "Agora")}</strong>
+          </div>
+        </div>
+        <div class="tracking-team-card-foot">
+          <small>Use GPS real depois para atualizar automaticamente.</small>
+          <strong>${escapeHtml(os)}</strong>
+        </div>
+      </button>
+    `;
+  }).join("");
+
+  trackingMarkerLayers.forEach((layer) => {
+    layer.innerHTML = markerHtml;
+  });
+  trackingTeamLists.forEach((list) => {
+    list.innerHTML = cardHtml;
+  });
+
+  if (trackingVisibleCount) {
+    trackingVisibleCount.textContent = `${visibleLocations.length} equipe${visibleLocations.length === 1 ? "" : "s"}`;
+  }
+
+  document.querySelectorAll("[data-tracking-team]").forEach((item) => {
+    item.addEventListener("click", () => {
+      activeTrackingTeam = item.dataset.trackingTeam;
+      if (!canSeeAllOrders()) setActiveTeam(activeTrackingTeam);
+      renderTracking();
+    });
+  });
+}
+
+function refreshTrackingPositions() {
+  const now = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  teamLocations = syncTrackingLocations().map((location) => {
+    const moving = getTrackingStatus(location.team, location.status) !== "Disponivel";
+    return {
+      ...location,
+      x: Math.min(88, Math.max(8, Number(location.x) + Math.floor(Math.random() * 9) - 4)),
+      y: Math.min(82, Math.max(14, Number(location.y) + Math.floor(Math.random() * 9) - 4)),
+      speed: moving ? Math.max(0, Number(location.speed) + Math.floor(Math.random() * 13) - 6) : 0,
+      updated: now
+    };
+  });
+  updateLocalState("teamLocations", teamLocations);
+  trackingUpdatedLabels.forEach((label) => {
+    label.textContent = `Atualizado ${now}`;
+  });
+  addAudit("Rastreamento atualizado", "Posicoes locais das equipes atualizadas");
+  renderTracking();
+}
+
+refreshTrackingButtons.forEach((button) => {
+  button.addEventListener("click", refreshTrackingPositions);
+});
 
 function syncTeamSummaries() {
   teamStatusCards.forEach((card) => {
@@ -1703,6 +1881,7 @@ function renderTechnicians() {
   }
 
   syncTeamSummaries();
+  renderTracking();
 }
 
 teamStatusCards.forEach((card) => {
@@ -1789,6 +1968,7 @@ renderOrderQueue();
 renderDispatchBoard();
 renderMobileOrders();
 renderTeamReport();
+renderTracking();
 renderSyncStatus();
 renderAuditLog();
 renderChatThread();
