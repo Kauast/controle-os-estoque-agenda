@@ -339,7 +339,7 @@ app.post("/usuarios", requireAuth, allowRoles("admin"), asyncRoute(async (req, r
   res.status(201).json(rows[0]);
 }));
 
-app.get("/produtos", requireAuth, allowRoles("admin", "estoque", "instrutor_os", "vendedor"), asyncRoute(async (req, res) => {
+app.get("/produtos", requireAuth, allowRoles("admin", "estoque", "instrutor_os", "vendedor", "tecnico"), asyncRoute(async (req, res) => {
   const { rows } = await query(
     `SELECT *
      FROM product_stock
@@ -616,7 +616,7 @@ app.patch("/os/:id", requireAuth, asyncRoute(async (req, res) => {
   res.json(rows[0]);
 }));
 
-app.get("/estoque", requireAuth, allowRoles("admin", "estoque", "instrutor_os", "vendedor"), asyncRoute(async (req, res) => {
+app.get("/estoque", requireAuth, allowRoles("admin", "estoque", "instrutor_os", "vendedor", "tecnico"), asyncRoute(async (req, res) => {
   const { rows } = await query(
     `SELECT *
      FROM product_stock
@@ -628,7 +628,7 @@ app.get("/estoque", requireAuth, allowRoles("admin", "estoque", "instrutor_os", 
   res.json(rows);
 }));
 
-app.get("/estoque/baixos", requireAuth, allowRoles("admin", "estoque", "vendedor"), asyncRoute(async (req, res) => {
+app.get("/estoque/baixos", requireAuth, allowRoles("admin", "estoque", "vendedor", "tecnico"), asyncRoute(async (req, res) => {
   const { rows } = await query(
     `SELECT *
      FROM product_stock

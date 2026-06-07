@@ -48,7 +48,15 @@ body:not(.role-tecnico) .team-access-control {
   display: none !important;
 }
 
-body:not(.role-admin):not(.role-estoque) .stock-only {
+body:not(.role-admin):not(.role-estoque):not(.role-tecnico) .stock-only {
+  display: none !important;
+}
+
+body:not(.role-tecnico) .stock-readonly-note {
+  display: none !important;
+}
+
+body.role-tecnico .stock-write-only {
   display: none !important;
 }
 

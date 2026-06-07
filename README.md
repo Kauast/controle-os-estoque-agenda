@@ -119,12 +119,12 @@ Depois atualize o `password_hash` do usuario no banco.
 - `admin`: acesso total, faturamento, estoque, OS, relatorios e aprovacoes.
 - `estoque`: produtos, entradas, baixas, reservas, separacao e retirada de material.
 - `instrutor_os`: cria/edita OS, vincula cliente/tecnico e solicita material.
-- `tecnico`: ve somente suas OS, atualiza status, envia fotos, assinatura e solicita material.
+- `tecnico`: ve somente suas OS, consulta quantidades do estoque central, atualiza status, envia fotos, assinatura e solicita material.
 - `vendedor`: consulta estoque e registra saida por venda.
 
 ## Regra critica do estoque
 
-Tecnicos e instrutores de OS nunca alteram estoque diretamente.
+Tecnicos e instrutores de OS nunca alteram estoque diretamente. O tecnico pode consultar quantidades disponiveis na central para saber se ha material antes de solicitar retirada.
 
 O fluxo correto e:
 

@@ -13,7 +13,7 @@ Use estes perfis no backend e no frontend:
 - `admin` pode acessar todos os modulos.
 - `estoque` pode gerenciar produtos, entradas, baixas, reservas, separacao e retirada de material.
 - `instrutor_os` pode criar e editar OS, vincular cliente/tecnico/equipe e solicitar material.
-- `tecnico` so pode acessar OS atribuidas a ele.
+- `tecnico` so pode acessar OS atribuidas a ele e consultar quantidades do estoque central.
 - `vendedor` pode consultar estoque e registrar saidas por venda.
 - `tecnico` e `instrutor_os` nunca alteram estoque diretamente.
 - `tecnico` pode registrar check-in, fotos, assinatura e observacoes somente da propria OS.
@@ -26,7 +26,7 @@ Use estes perfis no backend e no frontend:
 | Acao | admin | estoque | instrutor_os | tecnico |
 | --- | --- | --- | --- | --- |
 | Ver faturamento | sim | se permitido | nao | nao |
-| Ver estoque | sim | sim | consulta limitada | nao |
+| Ver estoque | sim | sim | consulta limitada | consulta de quantidade |
 | Cadastrar produto | sim | sim | nao | nao |
 | Entrada de estoque | sim | sim | nao | nao |
 | Baixa de estoque | sim | sim | nao | nao |
@@ -45,7 +45,8 @@ Perfil `vendedor`: consulta estoque e registra saida com motivo `venda`, sem ace
 
 ```text
 GET /admin/financeiro -> admin ou can_view_financial
-GET /estoque -> admin, estoque, instrutor_os, vendedor
+GET /estoque -> admin, estoque, instrutor_os, vendedor, tecnico
+GET /estoque/baixos -> admin, estoque, vendedor, tecnico
 POST /produtos -> admin, estoque
 POST /estoque/entrada -> admin, estoque
 POST /estoque/saida -> admin, estoque, vendedor

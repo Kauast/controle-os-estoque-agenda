@@ -504,7 +504,7 @@ function canAccessClientArea() {
 
 function canAccessStock() {
   const role = roleSelect?.value || appliedRole || "admin";
-  return role === "admin" || role === "estoque";
+  return role === "admin" || role === "estoque" || role === "tecnico";
 }
 
 function canAccessReports() {

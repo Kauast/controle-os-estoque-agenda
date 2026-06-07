@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Controle OS e Estoque</title>
-    <link rel="stylesheet" href="./styles.css?v=mobile-force-1" />
+    <link rel="stylesheet" href="./styles.css?v=stock-tech-1" />
   </head>
   <body>
     <div class="app-shell">
@@ -281,6 +281,9 @@
               </div>
               <span class="pill amber stock-low-count">3 baixos</span>
             </div>
+            <p class="stock-readonly-note">
+              Tecnico consulta as quantidades disponiveis na central e solicita material para a OS. Entrada, saida e cadastro continuam restritos ao estoque e administrador.
+            </p>
 
             <div class="inventory-dashboard">
               <div>
@@ -315,7 +318,7 @@
               </section>
 
               <section class="inventory-side">
-                <form class="inventory-product-form">
+                <form class="inventory-product-form stock-write-only">
                   <div class="form-section-title">
                     <span>Cadastro</span>
                     <strong>Novo produto</strong>
@@ -364,13 +367,13 @@
                     <small class="selected-stock-meta">FON-12V-2A - Prateleira A1</small>
                   </div>
                   <div class="qr-label" aria-label="Etiqueta QR do produto"></div>
-                  <button class="secondary-button print-qr-button" type="button">Imprimir etiqueta</button>
+                  <button class="secondary-button print-qr-button stock-write-only" type="button">Imprimir etiqueta</button>
                 </div>
               </section>
             </div>
 
             <div class="inventory-movement-grid">
-              <form class="stock-movement-form stock-entry-form">
+              <form class="stock-movement-form stock-entry-form stock-write-only">
                 <div class="form-section-title">
                   <span>Entrada</span>
                   <strong>Somar estoque</strong>
@@ -390,7 +393,7 @@
                 <button class="primary-button wide" type="submit">Registrar entrada</button>
               </form>
 
-              <form class="stock-movement-form stock-exit-form">
+              <form class="stock-movement-form stock-exit-form stock-write-only">
                 <div class="form-section-title">
                   <span>Saida</span>
                   <strong>Baixar estoque</strong>
@@ -425,7 +428,7 @@
               </section>
             </div>
 
-            <section class="stock-history-panel">
+            <section class="stock-history-panel stock-write-only">
               <div class="form-section-title">
                 <span>Historico</span>
                 <strong>Entradas e saidas recentes</strong>
@@ -1134,13 +1137,14 @@
         </section>
 
         <section class="mobile-form stock-only">
-          <div class="section-heading compact">
-            <div>
-              <span>Produtos do estoque</span>
-              <h2>Solicitar material para retirada</h2>
+            <div class="section-heading compact">
+              <div>
+                <span>Produtos do estoque</span>
+              <h2>Estoque central e materiais</h2>
+              </div>
+              <span class="pill teal">Disponivel</span>
             </div>
-            <span class="pill teal">Disponivel</span>
-          </div>
+          <small class="stock-readonly-note">Confira a quantidade na central antes de solicitar material para esta OS.</small>
           <label>
             Buscar produto
             <input class="product-search" type="search" placeholder="Fonte, camera, cabo..." />
@@ -1536,6 +1540,6 @@
     </dialog>
 
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-    <script src="./app.js?v=mobile-force-1"></script>
+    <script src="./app.js?v=stock-tech-1"></script>
   </body>
 </html>
