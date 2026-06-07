@@ -21,6 +21,7 @@ Este pacote sobe um banco PostgreSQL com as tabelas reais do projeto e uma API N
 - historico do cliente com fotos e assinatura de cada OS;
 - financeiro administrativo.
 - relatorios por equipe e por instrutor de OS.
+- integracao com Traccar para veiculos, dispositivos, posicoes e rastreamento por equipe.
 
 As regras de permissao estao descritas em `AUTHORIZATION.md`.
 
@@ -54,7 +55,11 @@ Troque principalmente:
 
 ```env
 POSTGRES_PASSWORD=troque-por-uma-senha-forte
+TRACCAR_URL=https://seu-servidor-traccar.com
+TRACCAR_TOKEN=token-do-usuario-traccar
 ```
+
+Se preferir Basic Auth no Traccar, use `TRACCAR_EMAIL` e `TRACCAR_PASSWORD` no lugar de `TRACCAR_TOKEN`.
 
 ## 4. Subir o banco
 
@@ -102,6 +107,22 @@ Teste a API:
 curl http://localhost:3001/health
 ```
 
+Teste a configuracao Traccar:
+
+```bash
+curl -X POST http://localhost:3001/traccar/testar \
+  -H "Authorization: Bearer TOKEN_DA_API_DO_CONTROLE_OS"
+```
+
+Depois sincronize dispositivos e ultimas posicoes:
+
+```bash
+curl -X POST http://localhost:3001/traccar/sincronizar \
+  -H "Authorization: Bearer TOKEN_DA_API_DO_CONTROLE_OS" \
+  -H "Content-Type: application/json" \
+  -d '{"all": true}'
+```
+
 ## 7. Configurar senha real do admin
 
 Os usuarios do seed usam `password_hash` temporario. Gere um hash bcrypt:
@@ -134,6 +155,12 @@ Volume usado:
 
 ```text
 controle_os_postgres_data
+```
+
+Para aplicar a integracao Traccar em um banco ja existente, rode:
+
+```bash
+docker exec -i controle-os-postgres psql -U controle_os_admin -d controle_os < ../database/06_traccar_integration.sql
 ```
 
 ## 9. Armazenamento de fotos e assinaturas

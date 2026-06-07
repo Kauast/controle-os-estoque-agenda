@@ -5,6 +5,7 @@ const cors = require("cors");
 const express = require("express");
 const { allowFinancial, allowRoles, requireAuth, signToken } = require("./auth");
 const { pool, query, transaction } = require("./db");
+const { fetchDevices, fetchPositions, getTraccarConfig, normalizeDevice, normalizePosition } = require("./traccar");
 
 const app = express();
 const port = Number(process.env.API_PORT || 3001);
@@ -70,6 +71,21 @@ async function assertProductInCompany(user, productId) {
   }
 }
 
+async function assertTeamInCompany(user, teamId) {
+  if (!teamId) return;
+
+  const { rows } = await query(
+    "SELECT 1 FROM teams WHERE id = $1 AND company_id = $2",
+    [teamId, user.company_id],
+  );
+
+  if (!rows[0]) {
+    const error = new Error("Equipe nao encontrada.");
+    error.status = 404;
+    throw error;
+  }
+}
+
 async function findProductForStock(client, user, identifier) {
   const { rows } = await client.query(
     `SELECT *
@@ -123,6 +139,156 @@ async function writeAudit(client, user, entityType, entityId, action, newData = 
      VALUES ($1, $2, $3, $4, $5, $6)`,
     [user.company_id, user.id, entityType, entityId, action, newData],
   );
+}
+
+async function upsertTraccarDevice(client, user, device) {
+  const normalized = normalizeDevice(device);
+
+  if (!normalized.traccar_id) {
+    const error = new Error("Dispositivo Traccar sem id.");
+    error.status = 400;
+    throw error;
+  }
+
+  const { rows } = await client.query(
+    `INSERT INTO traccar_devices (
+       company_id, vehicle_id, team_id, traccar_id, unique_id, name, status,
+       disabled, phone, model, contact, category, position_id, last_update,
+       attributes, raw, synced_at
+     )
+     VALUES (
+       $1,
+       (SELECT id FROM vehicles WHERE company_id = $1 AND tracker_chip_id = $3 LIMIT 1),
+       (SELECT team_id FROM vehicles WHERE company_id = $1 AND tracker_chip_id = $3 LIMIT 1),
+       $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, now()
+     )
+     ON CONFLICT (company_id, traccar_id)
+     DO UPDATE SET
+       vehicle_id = COALESCE(traccar_devices.vehicle_id, EXCLUDED.vehicle_id),
+       team_id = COALESCE(traccar_devices.team_id, EXCLUDED.team_id),
+       unique_id = EXCLUDED.unique_id,
+       name = EXCLUDED.name,
+       status = EXCLUDED.status,
+       disabled = EXCLUDED.disabled,
+       phone = EXCLUDED.phone,
+       model = EXCLUDED.model,
+       contact = EXCLUDED.contact,
+       category = EXCLUDED.category,
+       position_id = EXCLUDED.position_id,
+       last_update = EXCLUDED.last_update,
+       attributes = EXCLUDED.attributes,
+       raw = EXCLUDED.raw,
+       synced_at = now()
+     RETURNING *`,
+    [
+      user.company_id,
+      normalized.traccar_id,
+      normalized.unique_id,
+      normalized.name,
+      normalized.status,
+      normalized.disabled,
+      normalized.phone,
+      normalized.model,
+      normalized.contact,
+      normalized.category,
+      normalized.position_id,
+      normalized.last_update,
+      normalized.attributes,
+      normalized.raw,
+    ],
+  );
+
+  return rows[0];
+}
+
+async function upsertTraccarPosition(client, user, position, deviceMap) {
+  const normalized = normalizePosition(position);
+  const localDevice = deviceMap.get(Number(normalized.traccar_device_id));
+
+  if (!localDevice || normalized.latitude === undefined || normalized.longitude === undefined) {
+    return null;
+  }
+
+  const { rows } = await client.query(
+    `INSERT INTO traccar_positions (
+       company_id, traccar_device_id, traccar_position_id, device_time, fix_time,
+       server_time, valid, latitude, longitude, altitude, speed, course, address,
+       accuracy, attributes, raw, received_at
+     )
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, now())
+     ON CONFLICT (company_id, traccar_position_id)
+     DO UPDATE SET
+       traccar_device_id = EXCLUDED.traccar_device_id,
+       device_time = EXCLUDED.device_time,
+       fix_time = EXCLUDED.fix_time,
+       server_time = EXCLUDED.server_time,
+       valid = EXCLUDED.valid,
+       latitude = EXCLUDED.latitude,
+       longitude = EXCLUDED.longitude,
+       altitude = EXCLUDED.altitude,
+       speed = EXCLUDED.speed,
+       course = EXCLUDED.course,
+       address = EXCLUDED.address,
+       accuracy = EXCLUDED.accuracy,
+       attributes = EXCLUDED.attributes,
+       raw = EXCLUDED.raw,
+       received_at = now()
+     RETURNING *`,
+    [
+      user.company_id,
+      localDevice.id,
+      normalized.traccar_position_id,
+      normalized.device_time,
+      normalized.fix_time,
+      normalized.server_time,
+      normalized.valid,
+      normalized.latitude,
+      normalized.longitude,
+      normalized.altitude,
+      normalized.speed,
+      normalized.course,
+      normalized.address,
+      normalized.accuracy,
+      normalized.attributes,
+      normalized.raw,
+    ],
+  );
+
+  return rows[0];
+}
+
+async function syncTraccarSnapshot(user, params = {}) {
+  const [devices, positions] = await Promise.all([
+    fetchDevices({ all: params.all }),
+    fetchPositions(params.position_id ? { id: params.position_id } : {}),
+  ]);
+
+  return transaction(async (client) => {
+    const syncedDevices = [];
+    const deviceMap = new Map();
+
+    for (const device of devices) {
+      const synced = await upsertTraccarDevice(client, user, device);
+      syncedDevices.push(synced);
+      deviceMap.set(Number(synced.traccar_id), synced);
+    }
+
+    const syncedPositions = [];
+    for (const position of positions) {
+      const synced = await upsertTraccarPosition(client, user, position, deviceMap);
+      if (synced) syncedPositions.push(synced);
+    }
+
+    await writeAudit(client, user, "traccar", null, "sync", {
+      devices: syncedDevices.length,
+      positions: syncedPositions.length,
+    });
+
+    return {
+      devices: syncedDevices,
+      positions: syncedPositions,
+    };
+  });
 }
 
 app.get("/health", asyncRoute(async (req, res) => {
@@ -754,6 +920,191 @@ app.patch("/material/:id/separar", requireAuth, allowRoles("admin", "estoque"), 
 app.patch("/material/:id/retirar", requireAuth, allowRoles("admin", "estoque"), asyncRoute((req, res) => (
   updateMaterialStatus(req, res, "retirada", "withdrawn_by")
 )));
+
+app.get("/traccar/status", requireAuth, allowRoles("admin", "instrutor_os", "vendedor"), asyncRoute(async (req, res) => {
+  const config = getTraccarConfig();
+
+  res.json({
+    configured: Boolean(config.url && (config.token || (config.email && config.password))),
+    url: config.url || null,
+    auth: config.token ? "token" : config.email ? "basic" : "missing",
+    websocket_endpoint: config.url ? `${config.url}/api/socket` : null,
+  });
+}));
+
+app.post("/traccar/testar", requireAuth, allowRoles("admin", "instrutor_os", "vendedor"), asyncRoute(async (req, res) => {
+  const devices = await fetchDevices({ limit: 1 });
+  res.json({
+    ok: true,
+    devices_found: Array.isArray(devices) ? devices.length : 0,
+  });
+}));
+
+app.get("/traccar/dispositivos", requireAuth, allowRoles("admin", "instrutor_os", "vendedor"), asyncRoute(async (req, res) => {
+  const devices = await fetchDevices({
+    all: req.query.all,
+    id: req.query.id,
+    uniqueId: req.query.uniqueId,
+    limit: req.query.limit,
+    offset: req.query.offset,
+    keyword: req.query.keyword,
+  });
+
+  res.json(devices);
+}));
+
+app.get("/traccar/posicoes", requireAuth, allowRoles("admin", "instrutor_os", "vendedor"), asyncRoute(async (req, res) => {
+  const positions = await fetchPositions({
+    deviceId: req.query.deviceId,
+    from: req.query.from,
+    to: req.query.to,
+    id: req.query.id,
+  });
+
+  res.json(positions);
+}));
+
+app.post("/traccar/sincronizar", requireAuth, allowRoles("admin", "instrutor_os", "vendedor"), asyncRoute(async (req, res) => {
+  const body = req.body || {};
+  const result = await syncTraccarSnapshot(req.user, {
+    all: body.all ?? req.query.all,
+    position_id: body.position_id ?? req.query.position_id,
+  });
+
+  res.status(201).json({
+    devices_synced: result.devices.length,
+    positions_synced: result.positions.length,
+    devices: result.devices,
+    positions: result.positions,
+  });
+}));
+
+app.get("/veiculos", requireAuth, allowRoles("admin", "instrutor_os", "vendedor"), asyncRoute(async (req, res) => {
+  const params = [req.user.company_id];
+  let teamFilter = "";
+
+  if (req.query.team_id) {
+    params.push(req.query.team_id);
+    teamFilter = `AND v.team_id = $${params.length}`;
+  }
+
+  const { rows } = await query(
+    `SELECT v.*, t.name AS team_name
+     FROM vehicles v
+     LEFT JOIN teams t ON t.id = v.team_id
+     WHERE v.company_id = $1 ${teamFilter}
+     ORDER BY v.name`,
+    params,
+  );
+
+  res.json(rows);
+}));
+
+app.post("/veiculos", requireAuth, allowRoles("admin", "instrutor_os"), asyncRoute(async (req, res) => {
+  requireFields(req.body, ["name"]);
+  await assertTeamInCompany(req.user, req.body.team_id);
+
+  const { rows } = await query(
+    `INSERT INTO vehicles (company_id, team_id, name, plate, model, tracker_chip_id, notes)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
+     RETURNING *`,
+    [
+      req.user.company_id,
+      req.body.team_id || null,
+      req.body.name,
+      req.body.plate || null,
+      req.body.model || null,
+      req.body.tracker_chip_id || null,
+      req.body.notes || null,
+    ],
+  );
+
+  res.status(201).json(rows[0]);
+}));
+
+app.patch("/veiculos/:id", requireAuth, allowRoles("admin", "instrutor_os"), asyncRoute(async (req, res) => {
+  await assertTeamInCompany(req.user, req.body.team_id);
+
+  const allowed = ["team_id", "name", "plate", "model", "tracker_chip_id", "notes", "active"];
+  const updates = allowed.filter((field) => Object.prototype.hasOwnProperty.call(req.body, field));
+
+  if (updates.length === 0) {
+    return res.status(400).json({ error: "Nenhum campo permitido foi enviado." });
+  }
+
+  const assignments = updates.map((field, index) => `${field} = $${index + 3}`);
+  const values = updates.map((field) => req.body[field]);
+
+  const { rows } = await query(
+    `UPDATE vehicles
+     SET ${assignments.join(", ")}, updated_at = now()
+     WHERE id = $1 AND company_id = $2
+     RETURNING *`,
+    [req.params.id, req.user.company_id, ...values],
+  );
+
+  if (!rows[0]) {
+    return res.status(404).json({ error: "Veiculo nao encontrado." });
+  }
+
+  res.json(rows[0]);
+}));
+
+app.patch("/traccar/dispositivos/:id/vincular", requireAuth, allowRoles("admin", "instrutor_os"), asyncRoute(async (req, res) => {
+  await assertTeamInCompany(req.user, req.body.team_id);
+
+  if (req.body.vehicle_id) {
+    const vehicle = await query(
+      "SELECT 1 FROM vehicles WHERE id = $1 AND company_id = $2",
+      [req.body.vehicle_id, req.user.company_id],
+    );
+
+    if (!vehicle.rows[0]) {
+      return res.status(404).json({ error: "Veiculo nao encontrado." });
+    }
+  }
+
+  const { rows } = await query(
+    `UPDATE traccar_devices
+     SET vehicle_id = COALESCE($3, vehicle_id),
+         team_id = COALESCE($4, team_id),
+         synced_at = now()
+     WHERE id = $1 AND company_id = $2
+     RETURNING *`,
+    [
+      req.params.id,
+      req.user.company_id,
+      req.body.vehicle_id || null,
+      req.body.team_id || null,
+    ],
+  );
+
+  if (!rows[0]) {
+    return res.status(404).json({ error: "Dispositivo Traccar nao encontrado. Rode /traccar/sincronizar primeiro." });
+  }
+
+  res.json(rows[0]);
+}));
+
+app.get("/rastreamento/frota", requireAuth, allowRoles("admin", "instrutor_os", "vendedor"), asyncRoute(async (req, res) => {
+  const params = [req.user.company_id];
+  let teamFilter = "";
+
+  if (req.query.team_id) {
+    params.push(req.query.team_id);
+    teamFilter = `AND team_id = $${params.length}`;
+  }
+
+  const { rows } = await query(
+    `SELECT *
+     FROM fleet_tracking_status
+     WHERE company_id = $1 ${teamFilter}
+     ORDER BY team_name NULLS LAST, vehicle_name NULLS LAST, device_name`,
+    params,
+  );
+
+  res.json(rows);
+}));
 
 app.get("/relatorios/operacional", requireAuth, allowRoles("admin", "estoque", "instrutor_os"), asyncRoute(async (req, res) => {
   const [teams, instructions] = await Promise.all([

@@ -17,6 +17,7 @@ Sistema para controle de ordens de servico, estoque, agenda mensal por equipe, s
 - Relatorios por equipe e por instrutor de OS.
 - Perfis de usuario e matriz de permissoes documentada.
 - Schema PostgreSQL completo.
+- Integracao inicial com Traccar no backend: dispositivos, posicoes, veiculos, sincronizacao e rastreamento por equipe.
 - Docker Compose para hospedar o banco.
 
 ## Estrutura
@@ -69,6 +70,41 @@ A API sobe por padrao em:
 ```text
 http://localhost:3001
 ```
+
+## Integracao Traccar
+
+Configure no `server/.env`:
+
+```env
+TRACCAR_URL=https://seu-servidor-traccar.com
+TRACCAR_TOKEN=token-do-usuario-traccar
+```
+
+Tambem e possivel usar `TRACCAR_EMAIL` e `TRACCAR_PASSWORD` no lugar do token.
+
+Endpoints principais:
+
+```text
+GET  /traccar/status
+POST /traccar/testar
+GET  /traccar/dispositivos
+GET  /traccar/posicoes
+POST /traccar/sincronizar
+GET  /rastreamento/frota
+GET  /veiculos
+POST /veiculos
+PATCH /veiculos/:id
+PATCH /traccar/dispositivos/:id/vincular
+```
+
+Fluxo recomendado:
+
+1. configurar `TRACCAR_URL` e `TRACCAR_TOKEN`;
+2. testar com `POST /traccar/testar`;
+3. sincronizar com `POST /traccar/sincronizar`;
+4. cadastrar ou ajustar veiculos em `/veiculos`;
+5. vincular o dispositivo sincronizado a veiculo/equipe;
+6. consumir `GET /rastreamento/frota` na tela de rastreamento.
 
 Observacao: os usuarios de exemplo do seed ainda usam `password_hash` placeholder. Gere um hash real com:
 
