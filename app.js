@@ -28,6 +28,118 @@ const defaultTeamAccounts = [
   { team: "Equipe 5", user: "equipe5", password: "equipe5", members: "Plantao" }
 ];
 
+const buttonIconMap = {
+  painel: "layout-dashboard",
+  agenda: "calendar-days",
+  ordens: "clipboard-list",
+  estoque: "package",
+  clientes: "users",
+  equipe: "user-cog",
+  rastreamento: "map-pin",
+  financeiro: "dollar-sign",
+  relatorios: "bar-chart-3",
+  os: "clipboard-list",
+  perfil: "user",
+  exportar: "download",
+  "conta equipe": "log-in",
+  "nova os": "plus-circle",
+  hoje: "calendar-check",
+  semana: "calendar-range",
+  mes: "calendar-days",
+  "ver todas": "list",
+  "ler camera": "scan-line",
+  "abrir produto": "search",
+  "cadastrar e gerar qr": "qr-code",
+  "imprimir etiqueta": "printer",
+  "registrar entrada": "arrow-down-to-line",
+  "registrar saida": "arrow-up-from-line",
+  equipes: "users",
+  "instrucao os": "clipboard-pen",
+  detalhar: "search",
+  "entrar como equipe": "log-in",
+  "abrir cadastro": "folder-open",
+  "atualizar posicoes": "refresh-cw",
+  atualizar: "refresh-cw",
+  mapa: "map",
+  novo: "plus",
+  "salvar tecnico": "save",
+  excluir: "trash-2",
+  conta: "log-in",
+  "iniciar rota": "route",
+  agora: "clock",
+  proximas: "calendar-plus",
+  concluidas: "check-circle-2",
+  ligar: "phone",
+  rota: "map",
+  whatsapp: "message-circle",
+  "iniciar atendimento": "play",
+  "solicitar material": "package-plus",
+  "salvar observacao": "save",
+  "adicionar foto restante": "camera",
+  limpar: "eraser",
+  "confirmar assinatura": "pen-line",
+  "contabilizar id chip": "badge-check",
+  "concluir os": "check-circle-2",
+  "scanner qr os": "qr-code",
+  sincronizar: "refresh-cw",
+  "chat supervisor": "message-square",
+  auditoria: "shield-check",
+  "abrir os": "external-link",
+  "enviar mensagem": "send",
+  cancelar: "x",
+  "adicionar os": "plus-circle",
+  entrar: "log-in"
+};
+
+const iconOnlyMap = {
+  Pesquisar: "search",
+  Menu: "menu",
+  Fechar: "x"
+};
+
+function normalizeButtonLabel(button) {
+  return button.textContent.trim().replace(/\s+/g, " ").toLowerCase();
+}
+
+function attachIcon(button, iconName) {
+  if (!button || !iconName || button.querySelector(".button-icon")) return;
+
+  const icon = document.createElement("i");
+  icon.className = "button-icon";
+  icon.setAttribute("data-lucide", iconName);
+  icon.setAttribute("aria-hidden", "true");
+
+  if (button.classList.contains("icon-button")) {
+    button.textContent = "";
+    button.appendChild(icon);
+  } else {
+    button.prepend(icon);
+  }
+
+  button.classList.add("has-icon");
+
+  if (button.classList.contains("icon-button") && button.getAttribute("aria-label")) {
+    button.title = button.getAttribute("aria-label");
+  }
+}
+
+function decorateButtonIcons() {
+  document.querySelectorAll("button, a.secondary-button, a.primary-button, a.ghost-button").forEach((button) => {
+    const ariaLabel = button.getAttribute("aria-label");
+    attachIcon(button, iconOnlyMap[ariaLabel] || buttonIconMap[normalizeButtonLabel(button)]);
+  });
+
+  if (window.lucide?.createIcons) {
+    window.lucide.createIcons({
+      attrs: {
+        "stroke-width": 2.2
+      }
+    });
+  }
+}
+
+decorateButtonIcons();
+
 function loadLocalState() {
   try {
     return JSON.parse(localStorage.getItem(storageKey)) || {};

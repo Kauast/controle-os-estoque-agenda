@@ -135,6 +135,26 @@ button {
   text-align: left;
 }
 
+.has-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.nav-list button.has-icon {
+  display: flex;
+  justify-content: flex-start;
+  gap: 10px;
+}
+
+.button-icon,
+.lucide {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
 .nav-list button.active,
 .nav-list button:hover {
   background: rgba(255, 255, 255, 0.1);
@@ -301,6 +321,16 @@ h2 {
   color: var(--ink);
   border: 1px solid var(--line);
   font-size: 20px;
+}
+
+.icon-button.has-icon {
+  gap: 0;
+}
+
+.icon-button .button-icon,
+.icon-button .lucide {
+  width: 18px;
+  height: 18px;
 }
 
 .metrics-grid {
@@ -1949,6 +1979,7 @@ th {
     padding: 0 8px;
     background: transparent;
     color: var(--muted);
+    gap: 6px;
   }
 
   .mobile-tabs button.active {
@@ -2486,6 +2517,17 @@ th {
     border-radius: 8px;
     background: transparent;
     color: var(--muted);
+    padding: 4px;
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+    font-size: 12px;
+  }
+
+  .bottom-nav .button-icon,
+  .bottom-nav .lucide {
+    width: 15px;
+    height: 15px;
   }
 
   .bottom-nav button.active {
