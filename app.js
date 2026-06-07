@@ -211,6 +211,10 @@ function setUserRole(role) {
     document.querySelector(".nav-list button:not([data-admin-only])")?.classList.add("active");
   }
 
+  if (!canAccessStock() && document.querySelector(".stock-only.active")) {
+    showDesktopSection?.("painel", false);
+  }
+
   if (role === "atendimento") {
     document.body.classList.remove("finance-visible");
     if (document.querySelector(".stock-only.active, [data-admin-only].active")) {
@@ -432,6 +436,11 @@ function canAccessClientArea() {
   return role === "admin" || role === "atendimento";
 }
 
+function canAccessStock() {
+  const role = roleSelect?.value || appliedRole || "admin";
+  return role === "admin" || role === "estoque";
+}
+
 function setActiveDesktopNav(sectionKey) {
   document.querySelectorAll(".nav-list button").forEach((item) => {
     item.classList.toggle("active", getDesktopSectionKey(item) === sectionKey);
@@ -444,6 +453,10 @@ function showDesktopSection(sectionKey, shouldScroll = true) {
   }
 
   if (sectionKey === "clientes" && !canAccessClientArea()) {
+    sectionKey = "painel";
+  }
+
+  if (sectionKey === "estoque" && !canAccessStock()) {
     sectionKey = "painel";
   }
 
@@ -477,6 +490,7 @@ navButtons.forEach((button) => {
     if (button.closest(".nav-list")) {
       if (button.classList.contains("tracking-only") && !canAccessTracking()) return;
       if (button.classList.contains("client-access-only") && !canAccessClientArea()) return;
+      if (button.classList.contains("stock-only") && !canAccessStock()) return;
       showDesktopSection(getDesktopSectionKey(button));
     } else if (button.closest(".bottom-nav") && button.textContent.trim().toLowerCase() === "rota") {
       if (!canAccessTracking()) return;
@@ -484,6 +498,8 @@ navButtons.forEach((button) => {
       group.forEach((item) => item.classList.remove("active"));
       button.classList.add("active");
       document.querySelector(".mobile-tracking-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else if (button.closest(".bottom-nav") && button.classList.contains("stock-only") && !canAccessStock()) {
+      return;
     } else {
       const group = button.parentElement.querySelectorAll("button");
       group.forEach((item) => item.classList.remove("active"));
@@ -1956,6 +1972,7 @@ if (finishOsButton) {
         renderDispatchBoard();
         renderMobileOrders();
         renderTeamReport();
+        renderMonthlySchedule();
         renderTracking?.();
       }
       currentOsCompletionRegistered = true;

@@ -48,7 +48,7 @@ body:not(.role-tecnico) .team-access-control {
   display: none !important;
 }
 
-body.role-atendimento .stock-only {
+body:not(.role-admin):not(.role-estoque) .stock-only {
   display: none !important;
 }
 
