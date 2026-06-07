@@ -1289,9 +1289,9 @@ h2 {
   min-width: 122px;
   min-height: 54px;
   padding: 8px 10px 8px 32px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--team-color, var(--line));
   border-radius: 8px;
-  background: #fff;
+  background: linear-gradient(90deg, var(--team-soft, #fff) 0 24px, #fff 24px);
   color: var(--ink);
   text-align: left;
   box-shadow: 0 14px 30px rgba(15, 17, 20, 0.16);
@@ -1306,18 +1306,22 @@ h2 {
   width: 12px;
   height: 12px;
   border-radius: 999px;
-  background: var(--teal);
-  box-shadow: 0 0 0 6px var(--teal-soft);
+  background: var(--team-color, var(--teal));
+  box-shadow: 0 0 0 6px var(--team-soft, var(--teal-soft));
 }
 
 .tracking-marker.warning::before {
-  background: var(--amber);
-  box-shadow: 0 0 0 6px var(--amber-soft);
+  background: var(--team-color, var(--amber));
+  box-shadow:
+    0 0 0 6px var(--team-soft, var(--amber-soft)),
+    inset 0 0 0 2px var(--amber);
 }
 
 .tracking-marker.offline::before {
-  background: var(--red);
-  box-shadow: 0 0 0 6px var(--red-soft);
+  background: var(--team-color, var(--red));
+  box-shadow:
+    0 0 0 6px var(--team-soft, var(--red-soft)),
+    inset 0 0 0 2px var(--red);
 }
 
 .tracking-marker strong,
@@ -1332,7 +1336,7 @@ h2 {
 
 .tracking-marker.active,
 .tracking-marker:hover {
-  border-color: var(--dark);
+  border-color: var(--team-color, var(--dark));
   transform: translate(-16px, -20px);
 }
 
@@ -1373,12 +1377,49 @@ h2 {
   padding: 12px;
   display: grid;
   gap: 9px;
+  border-color: color-mix(in srgb, var(--team-color, var(--line)) 45%, var(--line));
+  box-shadow: inset 4px 0 0 var(--team-color, transparent);
 }
 
 .tracking-team-card.active,
 .tracking-team-card:hover {
-  border-color: var(--dark);
+  border-color: var(--team-color, var(--dark));
   background: #fff;
+}
+
+.tracking-marker.team-color-1,
+.tracking-team-card.team-color-1 {
+  --team-color: #127d75;
+  --team-soft: #e8f6f4;
+  --team-text: #0f5f59;
+}
+
+.tracking-marker.team-color-2,
+.tracking-team-card.team-color-2 {
+  --team-color: #2f6fd6;
+  --team-soft: #eaf1ff;
+  --team-text: #1e4f9d;
+}
+
+.tracking-marker.team-color-3,
+.tracking-team-card.team-color-3 {
+  --team-color: #8a55cc;
+  --team-soft: #f1eafd;
+  --team-text: #6339a1;
+}
+
+.tracking-marker.team-color-4,
+.tracking-team-card.team-color-4 {
+  --team-color: #d06a2c;
+  --team-soft: #fff0e7;
+  --team-text: #9b471d;
+}
+
+.tracking-marker.team-color-5,
+.tracking-team-card.team-color-5 {
+  --team-color: #53606f;
+  --team-soft: #eef1f4;
+  --team-text: #343f4d;
 }
 
 .tracking-team-card-head,
@@ -1395,6 +1436,21 @@ h2 {
 .tracking-team-card-foot small {
   display: block;
   min-width: 0;
+}
+
+.tracking-team-card-head strong {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--team-text, var(--ink));
+}
+
+.tracking-team-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--team-color, var(--teal));
+  box-shadow: 0 0 0 4px var(--team-soft, var(--teal-soft));
 }
 
 .tracking-team-card-head span,

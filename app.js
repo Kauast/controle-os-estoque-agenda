@@ -1886,6 +1886,11 @@ function getTrackingTone(status) {
   return "";
 }
 
+function getTrackingTeamClass(team) {
+  const index = teamOrder.indexOf(team);
+  return index >= 0 ? `team-color-${index + 1}` : "team-color-1";
+}
+
 function getVisibleTeamLocations() {
   const locations = syncTrackingLocations();
   if (canSeeAllOrders()) return locations;
@@ -1905,8 +1910,9 @@ function renderTracking() {
     const status = getTrackingStatus(location.team, location.status);
     const tone = getTrackingTone(status);
     const os = getTeamCurrentOrder(location.team);
+    const teamColorClass = getTrackingTeamClass(location.team);
     return `
-      <button class="tracking-marker ${tone}${location.team === activeTrackingTeam ? " active" : ""}" type="button" data-tracking-team="${escapeHtml(location.team)}" style="--x: ${Number(location.x)}%; --y: ${Number(location.y)}%;">
+      <button class="tracking-marker ${teamColorClass} ${tone}${location.team === activeTrackingTeam ? " active" : ""}" type="button" data-tracking-team="${escapeHtml(location.team)}" style="--x: ${Number(location.x)}%; --y: ${Number(location.y)}%;">
         <strong>${escapeHtml(location.team)}</strong>
         <small>${escapeHtml(location.vehicle)} - ${escapeHtml(status)}</small>
       </button>
@@ -1922,11 +1928,12 @@ function renderTracking() {
     const status = getTrackingStatus(location.team, location.status);
     const tone = getTrackingTone(status);
     const os = getTeamCurrentOrder(location.team);
+    const teamColorClass = getTrackingTeamClass(location.team);
     return `
-      <button class="tracking-team-card ${location.team === activeTrackingTeam ? " active" : ""}" type="button" data-tracking-team="${escapeHtml(location.team)}">
+      <button class="tracking-team-card ${teamColorClass} ${location.team === activeTrackingTeam ? " active" : ""}" type="button" data-tracking-team="${escapeHtml(location.team)}">
         <div class="tracking-team-card-head">
           <div>
-            <strong>${escapeHtml(location.team)}</strong>
+            <strong><span class="tracking-team-dot" aria-hidden="true"></span>${escapeHtml(location.team)}</strong>
             <span>${escapeHtml(getTeamMembers(location.team))}</span>
           </div>
           <span class="pill ${tone === "offline" ? "red" : tone === "warning" ? "amber" : "teal"}">${escapeHtml(status)}</span>
