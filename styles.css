@@ -2268,6 +2268,56 @@ th {
   display: none;
 }
 
+body.force-mobile {
+  background: var(--panel-soft);
+}
+
+body.force-mobile .app-shell {
+  display: block;
+  min-height: 100vh;
+  max-width: 430px;
+  margin-inline: auto;
+  background: var(--panel-soft);
+  box-shadow: 0 0 0 1px rgba(223, 227, 232, 0.72), 0 24px 80px rgba(15, 17, 20, 0.14);
+}
+
+body.force-mobile .sidebar,
+body.force-mobile .desktop-view {
+  display: none;
+}
+
+body.force-mobile .mobile-view {
+  min-height: 100vh;
+  padding: 12px 14px 98px;
+  display: grid;
+  gap: 14px;
+}
+
+body.force-mobile .mobile-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  margin-inline: -14px;
+  padding: 10px 14px;
+  background: rgba(246, 247, 249, 0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(223, 227, 232, 0.76);
+}
+
+body.force-mobile .tech-status,
+body.force-mobile .tech-dashboard-grid article,
+body.force-mobile .mobile-os-list,
+body.force-mobile .mobile-os-detail,
+body.force-mobile .mobile-tech-notes,
+body.force-mobile .mobile-client-history,
+body.force-mobile .mobile-advanced-tools,
+body.force-mobile .mobile-order,
+body.force-mobile .mobile-form,
+body.force-mobile .mobile-checklist,
+body.force-mobile .mobile-tracking-panel {
+  box-shadow: 0 12px 28px rgba(15, 17, 20, 0.08);
+}
+
 @media (max-width: 980px) {
   .app-shell {
     display: block;
@@ -3085,6 +3135,41 @@ textarea:focus {
 
 .bottom-nav {
   display: none;
+}
+
+body.force-mobile .bottom-nav {
+  position: fixed;
+  left: 50%;
+  bottom: 12px;
+  width: min(402px, calc(100vw - 24px));
+  transform: translateX(-50%);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 18px 38px rgba(15, 17, 20, 0.18);
+  backdrop-filter: blur(10px);
+  z-index: 50;
+}
+
+body.force-mobile .bottom-nav button {
+  min-height: 44px;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  padding: 4px;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  font-size: 12px;
+}
+
+body.force-mobile .bottom-nav button.active {
+  background: var(--dark);
+  color: #fff;
 }
 
 .topbar {

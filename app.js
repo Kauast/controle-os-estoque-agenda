@@ -1,4 +1,10 @@
 const navButtons = document.querySelectorAll(".nav-list button, .mobile-tabs button, .bottom-nav button");
+const urlParams = new URLSearchParams(window.location.search);
+
+if (urlParams.get("mobile") === "1" || urlParams.get("view") === "mobile") {
+  document.body.classList.add("force-mobile");
+}
+
 const roleSelect = document.querySelector(".role-select");
 const teamAccessSelects = document.querySelectorAll(".team-access-select");
 const financeNavButton = document.querySelector('.nav-list button[data-admin-only="true"]');
