@@ -285,10 +285,10 @@ const desktopSections = {
   ordens: [".orders-panel"],
   estoque: [".stock-panel"],
   clientes: [".client-history-panel"],
-  equipe: [".team-panel"],
+  equipe: [".team-panel", ".profiles-panel"],
   rastreamento: [".tracking-panel"],
   financeiro: [".finance-panel"],
-  relatorios: [".reports-panel", ".profiles-panel"]
+  relatorios: [".reports-panel"]
 };
 
 function getDesktopSectionKey(button) {
