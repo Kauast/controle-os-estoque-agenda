@@ -211,11 +211,16 @@ function setUserRole(role) {
 
   if (role === "atendimento") {
     document.body.classList.remove("finance-visible");
-    document.querySelectorAll(".stock-only.active, [data-admin-only].active").forEach((item) => item.classList.remove("active"));
-    document.querySelector(".nav-list button:not(.stock-only):not([data-admin-only])")?.classList.add("active");
+    if (document.querySelector(".stock-only.active, [data-admin-only].active")) {
+      showDesktopSection?.("painel", false);
+    }
   }
 
   if (!canUseTracking && document.querySelector(".tracking-only.active")) {
+    showDesktopSection?.("painel", false);
+  }
+
+  if (!canAccessClientArea() && document.querySelector(".client-access-only.active")) {
     showDesktopSection?.("painel", false);
   }
 }
@@ -417,6 +422,11 @@ function canAccessTracking() {
   return role === "admin" || role === "atendimento";
 }
 
+function canAccessClientArea() {
+  const role = roleSelect?.value || appliedRole || "admin";
+  return role === "admin" || role === "atendimento";
+}
+
 function setActiveDesktopNav(sectionKey) {
   document.querySelectorAll(".nav-list button").forEach((item) => {
     item.classList.toggle("active", getDesktopSectionKey(item) === sectionKey);
@@ -425,6 +435,10 @@ function setActiveDesktopNav(sectionKey) {
 
 function showDesktopSection(sectionKey, shouldScroll = true) {
   if (sectionKey === "rastreamento" && !canAccessTracking()) {
+    sectionKey = "painel";
+  }
+
+  if (sectionKey === "clientes" && !canAccessClientArea()) {
     sectionKey = "painel";
   }
 
@@ -457,6 +471,7 @@ navButtons.forEach((button) => {
 
     if (button.closest(".nav-list")) {
       if (button.classList.contains("tracking-only") && !canAccessTracking()) return;
+      if (button.classList.contains("client-access-only") && !canAccessClientArea()) return;
       showDesktopSection(getDesktopSectionKey(button));
     } else if (button.closest(".bottom-nav") && button.textContent.trim().toLowerCase() === "rota") {
       if (!canAccessTracking()) return;

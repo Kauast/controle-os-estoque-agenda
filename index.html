@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Controle OS e Estoque</title>
-    <link rel="stylesheet" href="./styles.css?v=tracking-access-1" />
+    <link rel="stylesheet" href="./styles.css?v=clients-compact-1" />
   </head>
   <body>
     <div class="app-shell">
@@ -22,7 +22,7 @@
           <button>Agenda</button>
           <button>Ordens</button>
           <button class="stock-only">Estoque</button>
-          <button>Clientes</button>
+          <button class="client-access-only">Clientes</button>
           <button>Equipe</button>
           <button class="tracking-only">Rastreamento</button>
           <button data-admin-only="true">Financeiro</button>
@@ -670,7 +670,7 @@
             </div>
           </article>
 
-          <article class="client-history-panel admin-only" aria-label="Historico do cliente com fotos e assinatura">
+          <article class="client-history-panel client-access-only" aria-label="Historico do cliente com fotos e assinatura">
             <div class="section-heading">
               <div>
                 <span>Cliente Alpha Condominio</span>
@@ -679,11 +679,50 @@
               <button class="ghost-button">Abrir cadastro</button>
             </div>
 
+            <div class="client-summary-grid" aria-label="Resumo do cliente">
+              <section class="client-summary-card primary">
+                <span>Cliente</span>
+                <strong>Alpha Condominio</strong>
+                <small>Sindico Joao - (11) 4000-1000</small>
+              </section>
+              <section class="client-summary-card">
+                <span>Endereco</span>
+                <strong>Rua das Flores, 120</strong>
+                <small>Portaria 24h - zona norte</small>
+              </section>
+              <section class="client-summary-card">
+                <span>Ultima OS</span>
+                <strong>OS-1048</strong>
+                <small>Em andamento com Equipe 1</small>
+              </section>
+              <section class="client-summary-card">
+                <span>Historico</span>
+                <strong>2 OS</strong>
+                <small>Fotos e assinaturas arquivadas</small>
+              </section>
+            </div>
+
+            <div class="client-history-toolbar">
+              <div>
+                <span>Registros recentes</span>
+                <strong>OS, fotos, assinatura e observacoes</strong>
+              </div>
+              <div class="client-history-tags">
+                <span class="pill teal">Cliente ativo</span>
+                <span class="pill amber">1 em aberto</span>
+              </div>
+            </div>
+
             <div class="client-history-list">
               <article class="client-history-item">
                 <div class="history-summary">
                   <span>OS-1048 · 05/06/2026</span>
                   <strong>Portao automatico sem resposta</strong>
+                  <div class="client-history-meta">
+                    <span>3 fotos</span>
+                    <span>Assinatura pendente</span>
+                    <span>ID CHIP pendente</span>
+                  </div>
                   <small>Equipe 1 · Bruno · Servico em andamento</small>
                 </div>
                 <div class="history-proof-strip" aria-label="Fotos e assinatura da OS-1048">
@@ -710,6 +749,11 @@
                 <div class="history-summary">
                   <span>OS-0987 · 18/05/2026</span>
                   <strong>Preventiva do motor e sensores</strong>
+                  <div class="client-history-meta">
+                    <span>3 fotos</span>
+                    <span>Assinada</span>
+                    <span>Concluida</span>
+                  </div>
                   <small>Equipe 3 · Marcos · Concluida</small>
                 </div>
                 <div class="history-proof-strip" aria-label="Fotos e assinatura da OS-0987">
@@ -1383,6 +1427,6 @@
     </dialog>
 
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-    <script src="./app.js?v=tracking-access-1"></script>
+    <script src="./app.js?v=clients-compact-1"></script>
   </body>
 </html>
