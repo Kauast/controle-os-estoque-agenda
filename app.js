@@ -1,6 +1,58 @@
 const navButtons = document.querySelectorAll(".nav-list button, .mobile-tabs button, .bottom-nav button");
 const roleSelect = document.querySelector(".role-select");
 const financeNavButton = document.querySelector('.nav-list button[data-admin-only="true"]');
+const storageKey = "controle-os-local-v2";
+
+function loadLocalState() {
+  try {
+    return JSON.parse(localStorage.getItem(storageKey)) || {};
+  } catch {
+    return {};
+  }
+}
+
+let localState = loadLocalState();
+
+function saveLocalState() {
+  localStorage.setItem(storageKey, JSON.stringify(localState));
+}
+
+function updateLocalState(key, value) {
+  localState[key] = value;
+  saveLocalState();
+}
+
+function getNowLabel() {
+  return new Date().toLocaleString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
+
+function addAudit(action, detail) {
+  const entry = { action, detail, when: getNowLabel(), role: roleSelect?.value || "admin" };
+  localState.auditLog = [entry, ...(localState.auditLog || [])].slice(0, 80);
+  saveLocalState();
+  renderAuditLog?.();
+}
+
+function queueOfflineAction(type, detail) {
+  const entry = { type, detail, when: getNowLabel(), synced: navigator.onLine };
+  localState.syncQueue = [entry, ...(localState.syncQueue || [])].slice(0, 60);
+  saveLocalState();
+  renderSyncStatus?.();
+}
+
+function notifyLocal(message) {
+  const notificationStatus = document.querySelector(".notification-status");
+  if (notificationStatus) notificationStatus.textContent = message;
+
+  if ("Notification" in window && Notification.permission === "granted") {
+    new Notification("Controle OS", { body: message });
+  }
+}
 
 function setUserRole(role) {
   const isAdmin = role === "admin";
@@ -13,10 +65,17 @@ function setUserRole(role) {
   }
 }
 
-setUserRole(roleSelect?.value || "admin");
+const savedRole = localState.role || roleSelect?.value || "admin";
+if (roleSelect) roleSelect.value = savedRole;
+setUserRole(savedRole);
 
 if (roleSelect) {
-  roleSelect.addEventListener("change", () => setUserRole(roleSelect.value));
+  roleSelect.addEventListener("change", () => {
+    setUserRole(roleSelect.value);
+    updateLocalState("role", roleSelect.value);
+    addAudit("Perfil alterado", `Perfil ativo: ${roleSelect.value}`);
+    renderMaterialRequests?.();
+  });
 }
 
 navButtons.forEach((button) => {
@@ -56,7 +115,10 @@ const productQty = document.querySelector(".product-qty");
 const addProductButton = document.querySelector(".add-product-button");
 const clientProductList = document.querySelector(".client-product-list");
 const clientTotal = document.querySelector(".client-total");
-const selectedProducts = [{ name: "Fonte 12V 2A", qty: 1, price: 48 }];
+const materialRequestList = document.querySelector(".material-request-list");
+const materialPendingCount = document.querySelector(".material-pending-count");
+let selectedProducts = localState.selectedProducts || [{ name: "Fonte 12V 2A", qty: 1, price: 48 }];
+let materialRequests = localState.materialRequests || [];
 
 function parseCurrency(value) {
   return Number(value.replace(".", "").replace(",", "."));
@@ -80,6 +142,65 @@ function renderClientProducts() {
 
   const total = selectedProducts.reduce((sum, item) => sum + item.qty * item.price, 0);
   clientTotal.textContent = formatCurrency(total);
+  updateLocalState("selectedProducts", selectedProducts);
+}
+
+function renderMaterialRequests() {
+  if (!materialRequestList || !materialPendingCount) return;
+
+  const pending = materialRequests.filter((request) => request.status === "pendente");
+  materialPendingCount.textContent = `${pending.length} pendente${pending.length === 1 ? "" : "s"}`;
+
+  if (materialRequests.length === 0) {
+    materialRequestList.innerHTML = "<small>Nenhuma solicitacao pendente.</small>";
+    return;
+  }
+
+  materialRequestList.innerHTML = materialRequests.map((request) => {
+    const canApprove = ["admin", "estoque"].includes(roleSelect?.value || "admin") && request.status === "pendente";
+    return `
+      <article class="material-request-item" data-request-id="${request.id}">
+        <strong>${request.qty}x ${request.name}</strong>
+        <small>${request.os} - ${request.status} - ${request.when}</small>
+        ${canApprove ? `
+          <div class="material-request-actions">
+            <button class="secondary-button approve-material-button" type="button" data-request-id="${request.id}">Aprovar</button>
+            <button class="danger-button reject-material-button" type="button" data-request-id="${request.id}">Reprovar</button>
+          </div>
+        ` : ""}
+      </article>
+    `;
+  }).join("");
+}
+
+function createMaterialRequest(item) {
+  const request = {
+    id: Date.now(),
+    os: "OS-1048",
+    name: item.name,
+    qty: item.qty,
+    status: "pendente",
+    when: getNowLabel()
+  };
+  materialRequests.unshift(request);
+  updateLocalState("materialRequests", materialRequests);
+  addAudit("Material solicitado", `${request.qty}x ${request.name} para ${request.os}`);
+  queueOfflineAction("material", `${request.qty}x ${request.name}`);
+  notifyLocal(`Material solicitado: ${request.name}`);
+  renderMaterialRequests();
+}
+
+function updateMaterialRequest(id, status) {
+  const request = materialRequests.find((item) => item.id === Number(id));
+  if (!request) return;
+
+  request.status = status;
+  request.reviewedAt = getNowLabel();
+  updateLocalState("materialRequests", materialRequests);
+  addAudit(`Material ${status}`, `${request.qty}x ${request.name} em ${request.os}`);
+  queueOfflineAction("material-review", `${request.name}: ${status}`);
+  notifyLocal(`Solicitacao de material ${status}.`);
+  renderMaterialRequests();
 }
 
 productCards.forEach((card) => {
@@ -106,11 +227,14 @@ if (addProductButton) {
     if (!selectedCard) return;
 
     const qty = Math.max(1, Number(productQty.value || 1));
-    selectedProducts.push({
+    const requestItem = {
       name: selectedCard.dataset.product,
       qty,
       price: parseCurrency(selectedCard.dataset.price)
-    });
+    };
+
+    selectedProducts.push(requestItem);
+    createMaterialRequest(requestItem);
 
     productQty.value = "1";
     addProductButton.textContent = "Solicitacao criada";
@@ -123,8 +247,18 @@ if (addProductButton) {
 }
 
 renderClientProducts();
+renderMaterialRequests();
 
-const inventoryProducts = [
+if (materialRequestList) {
+  materialRequestList.addEventListener("click", (event) => {
+    const approveButton = event.target.closest(".approve-material-button");
+    const rejectButton = event.target.closest(".reject-material-button");
+    if (approveButton) updateMaterialRequest(approveButton.dataset.requestId, "aprovado");
+    if (rejectButton) updateMaterialRequest(rejectButton.dataset.requestId, "reprovado");
+  });
+}
+
+const defaultInventoryProducts = [
   { id: 1, name: "Fonte 12V 2A", sku: "FON-12V-2A", category: "Eletrica", location: "Prateleira A1", qty: 8, min: 20, cost: 29, price: 48, qr: "PROD:FON-12V-2A" },
   { id: 2, name: "Bateria 7Ah", sku: "BAT-7AH", category: "Energia", location: "Prateleira A2", qty: 10, min: 12, cost: 62, price: 96, qr: "PROD:BAT-7AH" },
   { id: 3, name: "Cabo UTP Cat6", sku: "CAB-CAT6", category: "Rede", location: "Corredor B1", qty: 5, min: 6, cost: 270, price: 420, qr: "PROD:CAB-CAT6" },
@@ -133,10 +267,14 @@ const inventoryProducts = [
   { id: 6, name: "Controle remoto TX", sku: "CTRL-TX", category: "Automacao", location: "Gaveta C1", qty: 24, min: 15, cost: 34, price: 58, qr: "PROD:CTRL-TX" }
 ];
 
-const stockMovements = [
+let inventoryProducts = localState.inventoryProducts || defaultInventoryProducts;
+
+const defaultStockMovements = [
   { product: "Fonte 12V 2A", type: "saida", qty: 1, user: "Estoque", date: "Hoje 10:05", reason: "OS", before: 9, after: 8 },
   { product: "Bateria 7Ah", type: "entrada", qty: 4, user: "Estoque", date: "Hoje 08:20", reason: "Fornecedor B", before: 6, after: 10 }
 ];
+
+let stockMovements = localState.stockMovements || defaultStockMovements;
 
 let selectedInventoryProductId = 1;
 
@@ -285,12 +423,16 @@ function registerStockMovement({ product, type, qty, reason, user = "Estoque" })
     type,
     qty,
     user,
-    date: "Agora",
+    date: getNowLabel(),
     reason,
     before,
     after
   });
   selectedInventoryProductId = product.id;
+  updateLocalState("inventoryProducts", inventoryProducts);
+  updateLocalState("stockMovements", stockMovements);
+  addAudit(type === "entrada" ? "Entrada de estoque" : "Saida de estoque", `${qty} un. de ${product.name} - ${reason}`);
+  queueOfflineAction("estoque", `${type} ${qty} un. ${product.sku}`);
   renderInventory();
   return true;
 }
@@ -315,6 +457,9 @@ if (inventoryProductForm) {
 
     inventoryProducts.push(product);
     selectedInventoryProductId = product.id;
+    updateLocalState("inventoryProducts", inventoryProducts);
+    addAudit("Produto cadastrado", `${product.name} (${product.sku})`);
+    queueOfflineAction("produto", product.sku);
     inventoryProductForm.reset();
     document.querySelector(".stock-product-qty").value = "0";
     document.querySelector(".stock-product-min").value = "1";
@@ -557,12 +702,14 @@ const teamReportMeta = {
   "Equipe 4": { time: "2h26", photos: "91%", signatures: "88%", status: "Revisar", pill: "amber" },
   "Equipe 5": { time: "1h35", photos: "100%", signatures: "100%", status: "Plantao ok", pill: "teal" }
 };
-const serviceOrders = [
+const defaultServiceOrders = [
   { code: "OS-1048", client: "Cliente Alpha Condominio", description: "Portao automatico sem resposta - 2 produtos no cliente", tech: "Bruno", time: "09:30", team: "Equipe 1", priority: "high", status: "pending" },
   { code: "OS-1049", client: "Mercado Central", description: "Preventiva em cameras CFTV", tech: "Marcos", time: "11:00", team: "Equipe 3", priority: "normal", status: "pending" },
   { code: "OS-1050", client: "Clinica Santa Clara", description: "Troca de fonte e bateria", tech: "Ana", time: "14:00", team: "Equipe 2", priority: "warning", status: "pending" },
   { code: "OS-1051", client: "Residencial Norte", description: "Instalacao de leitor facial", tech: "Diego", time: "16:30", team: "Equipe 4", priority: "normal", status: "pending" }
 ];
+
+let serviceOrders = localState.serviceOrders || defaultServiceOrders;
 
 function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (char) => ({
@@ -609,6 +756,13 @@ function upsertDispatchCard(order) {
 
   refreshDropzones();
   sortServiceOrdersByPriority();
+}
+
+function renderDispatchBoard() {
+  availableOrders?.querySelectorAll(".dispatch-card").forEach((card) => card.remove());
+  document.querySelectorAll(".team-dropzone .dispatch-card").forEach((card) => card.remove());
+  serviceOrders.forEach(upsertDispatchCard);
+  refreshDropzones();
 }
 
 function renderOrderQueue() {
@@ -676,8 +830,12 @@ function nextOrderCode() {
 
 function addServiceOrder(order) {
   serviceOrders.push(order);
+  updateLocalState("serviceOrders", serviceOrders);
+  addAudit("OS criada", `${order.code} - ${order.client} - ${order.team}`);
+  queueOfflineAction("os", `${order.code} criada`);
+  notifyLocal(`Nova OS criada: ${order.code}`);
   renderOrderQueue();
-  upsertDispatchCard(order);
+  renderDispatchBoard();
   renderTeamReport();
 }
 
@@ -727,8 +885,127 @@ newOsForm?.addEventListener("submit", (event) => {
   newOsDialog?.close();
 });
 
+const syncOfflineButton = document.querySelector(".sync-offline-button");
+const offlineSyncStatus = document.querySelector(".offline-sync-status");
+const scanOsQrButton = document.querySelector(".scan-os-qr-button");
+const osQrCard = document.querySelector(".os-qr-card");
+const osQrLabel = document.querySelector(".os-qr-label");
+const osQrInput = document.querySelector(".os-qr-input");
+const openOsByQrButton = document.querySelector(".open-os-by-qr-button");
+const chatSupervisorButton = document.querySelector(".chat-supervisor-button");
+const chatCard = document.querySelector(".chat-card");
+const chatThread = document.querySelector(".chat-thread");
+const chatInput = document.querySelector(".chat-input");
+const sendChatButton = document.querySelector(".send-chat-button");
+const auditButton = document.querySelector(".audit-button");
+const auditCard = document.querySelector(".audit-card");
+const auditLogList = document.querySelector(".audit-log-list");
+
+function renderSyncStatus() {
+  if (!offlineSyncStatus) return;
+
+  const pending = (localState.syncQueue || []).filter((item) => !item.synced);
+  offlineSyncStatus.textContent = pending.length > 0
+    ? `${pending.length} acao${pending.length === 1 ? "" : "es"} aguardando sincronizacao`
+    : "Fila local sincronizada";
+}
+
+function renderAuditLog() {
+  if (!auditLogList) return;
+
+  const logs = localState.auditLog || [];
+  auditLogList.innerHTML = logs.length === 0
+    ? "<small>Nenhuma acao registrada ainda.</small>"
+    : logs.slice(0, 12).map((item) => `
+      <article class="audit-log-item">
+        <strong>${escapeHtml(item.action)}</strong>
+        <small>${escapeHtml(item.detail)} - ${item.when} - ${item.role}</small>
+      </article>
+    `).join("");
+}
+
+function renderChatThread() {
+  if (!chatThread) return;
+
+  const messages = localState.chatMessages || [];
+  chatThread.innerHTML = messages.length === 0
+    ? "<small>Supervisor: envie uma mensagem curta sobre a OS.</small>"
+    : messages.slice(-8).map((message) => `
+      <article class="chat-message">
+        <strong>${escapeHtml(message.author)}</strong>
+        <small>${escapeHtml(message.text)} - ${message.when}</small>
+      </article>
+    `).join("");
+}
+
+function renderOsQr() {
+  if (!osQrLabel) return;
+
+  const currentCode = "OS-1048";
+  osQrLabel.innerHTML = `
+    <img class="qr-code-img" src="https://api.qrserver.com/v1/create-qr-code/?size=132x132&data=${encodeURIComponent(currentCode)}" alt="QR Code ${currentCode}" />
+    <div class="qr-fallback">${createQrMatrix(currentCode)}</div>
+    <strong>${currentCode}</strong>
+    <small>Abra rapidamente a ordem pelo celular</small>
+  `;
+}
+
+syncOfflineButton?.addEventListener("click", () => {
+  localState.syncQueue = (localState.syncQueue || []).map((item) => ({ ...item, synced: true }));
+  saveLocalState();
+  addAudit("Sincronizacao local", "Fila local marcada como sincronizada");
+  renderSyncStatus();
+  notifyLocal("Sincronizacao local concluida.");
+});
+
+scanOsQrButton?.addEventListener("click", async () => {
+  osQrCard.hidden = !osQrCard.hidden;
+  renderOsQr();
+  osQrInput?.focus();
+});
+
+openOsByQrButton?.addEventListener("click", () => {
+  const code = (osQrInput?.value || "").trim().toUpperCase();
+  const found = serviceOrders.find((order) => order.code === code);
+  addAudit("Scanner QR OS", found ? `${code} aberto localmente` : `${code || "vazio"} nao encontrado`);
+  notifyLocal(found ? `${code} localizada.` : "OS nao encontrada no cache local.");
+});
+
+chatSupervisorButton?.addEventListener("click", () => {
+  chatCard.hidden = !chatCard.hidden;
+  renderChatThread();
+  chatInput?.focus();
+});
+
+sendChatButton?.addEventListener("click", () => {
+  const text = chatInput?.value.trim();
+  if (!text) return;
+
+  localState.chatMessages = [
+    ...(localState.chatMessages || []),
+    { author: roleSelect?.value || "tecnico", text, when: getNowLabel(), os: "OS-1048" }
+  ].slice(-40);
+  chatInput.value = "";
+  saveLocalState();
+  addAudit("Mensagem enviada", text);
+  queueOfflineAction("chat", text);
+  renderChatThread();
+});
+
+auditButton?.addEventListener("click", () => {
+  auditCard.hidden = !auditCard.hidden;
+  renderAuditLog();
+});
+
+window.addEventListener("online", renderSyncStatus);
+window.addEventListener("offline", () => {
+  addAudit("Modo offline", "Navegador informou ausencia de conexao");
+  renderSyncStatus();
+});
+
 const photoProofs = document.querySelectorAll(".photo-proof");
 const capturePhotoButton = document.querySelector(".capture-photo-button");
+const photoUploadInput = document.querySelector(".photo-upload-input");
 const signatureBox = document.querySelector(".signature-box");
 const signatureCanvas = document.querySelector(".signature-canvas");
 const signatureLine = document.querySelector(".signature-line");
@@ -751,6 +1028,37 @@ let signatureHasInk = false;
 let isSigning = false;
 let lastSignaturePoint = null;
 let currentOsCompletionRegistered = false;
+let targetPhotoProof = null;
+
+function renderSavedPhotos() {
+  const photos = localState.osPhotos || {};
+
+  photoProofs.forEach((photo) => {
+    const dataUrl = photos[photo.dataset.photo];
+    photo.querySelector("img")?.remove();
+
+    if (dataUrl) {
+      const image = document.createElement("img");
+      image.src = dataUrl;
+      image.alt = `Foto ${photo.dataset.photo} da OS`;
+      photo.appendChild(image);
+      photo.classList.add("captured", "has-image");
+    }
+  });
+
+  updateCompletionState();
+}
+
+function savePhotoProof(photo, dataUrl) {
+  localState.osPhotos = {
+    ...(localState.osPhotos || {}),
+    [photo.dataset.photo]: dataUrl
+  };
+  saveLocalState();
+  addAudit("Foto salva", `Foto ${photo.dataset.photo} vinculada a OS-1048`);
+  queueOfflineAction("foto", `Foto ${photo.dataset.photo} da OS-1048`);
+  renderSavedPhotos();
+}
 
 function normalizeTrackerChip(value) {
   return value.replace(/\D/g, "");
@@ -799,6 +1107,8 @@ if (checkinButton) {
       desktopCheckinStatus.textContent = "Iniciado";
     }
 
+    addAudit("Check-in registrado", `Atendimento iniciado as ${time}`);
+    queueOfflineAction("check-in", `OS-1048 as ${time}`);
     updateCompletionState();
   });
 }
@@ -813,13 +1123,25 @@ if (saveServiceNoteButton) {
     }
 
     serviceNoteStatus.textContent = "Observacao tecnica salva no historico da OS.";
+    localState.serviceNotes = [
+      { os: "OS-1048", text, when: getNowLabel() },
+      ...(localState.serviceNotes || [])
+    ].slice(0, 20);
+    saveLocalState();
+    addAudit("Observacao tecnica", text);
+    queueOfflineAction("observacao", text);
   });
 }
 
 photoProofs.forEach((photo) => {
   photo.addEventListener("click", () => {
-    photo.classList.add("captured");
-    updateCompletionState();
+    targetPhotoProof = photo;
+    photoUploadInput?.click();
+
+    if (!photoUploadInput) {
+      photo.classList.add("captured");
+      updateCompletionState();
+    }
   });
 });
 
@@ -827,9 +1149,27 @@ if (capturePhotoButton) {
   capturePhotoButton.addEventListener("click", () => {
     const nextPhoto = document.querySelector(".photo-proof:not(.captured)");
     if (nextPhoto) {
-      nextPhoto.classList.add("captured");
+      targetPhotoProof = nextPhoto;
+      photoUploadInput?.click();
+      if (!photoUploadInput) nextPhoto.classList.add("captured");
     }
     updateCompletionState();
+  });
+}
+
+if (photoUploadInput) {
+  photoUploadInput.addEventListener("change", () => {
+    const file = photoUploadInput.files?.[0];
+    const target = targetPhotoProof || document.querySelector(".photo-proof:not(.captured)");
+    if (!file || !target) return;
+
+    const reader = new FileReader();
+    reader.addEventListener("load", () => {
+      savePhotoProof(target, reader.result);
+      photoUploadInput.value = "";
+      targetPhotoProof = null;
+    });
+    reader.readAsDataURL(file);
   });
 }
 
@@ -859,15 +1199,34 @@ function setupSignatureCanvas() {
   context.strokeStyle = "#17191c";
 }
 
+function restoreSignature() {
+  if (!signatureCanvas || !localState.signatureImage) return;
+
+  const context = signatureCanvas.getContext("2d");
+  const image = new Image();
+  image.addEventListener("load", () => {
+    context.drawImage(image, 0, 0, signatureCanvas.clientWidth, signatureCanvas.clientHeight);
+    signatureHasInk = true;
+    signatureBox?.classList.add("signed");
+    if (signatureLine) signatureLine.textContent = "Assinatura salva";
+    if (confirmSignatureButton) confirmSignatureButton.disabled = false;
+    updateCompletionState();
+  });
+  image.src = localState.signatureImage;
+}
+
 function clearSignature() {
   if (!signatureCanvas) return;
 
   const context = signatureCanvas.getContext("2d");
   context.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
   signatureHasInk = false;
+  delete localState.signatureImage;
+  saveLocalState();
   signatureBox?.classList.remove("signed");
   if (signatureLine) signatureLine.textContent = "Pendente";
   if (confirmSignatureButton) confirmSignatureButton.disabled = true;
+  addAudit("Assinatura limpa", "Assinatura removida da OS-1048");
   updateCompletionState();
 }
 
@@ -914,6 +1273,7 @@ if (signatureCanvas) {
   signatureCanvas.addEventListener("touchstart", startSignature, { passive: false });
   signatureCanvas.addEventListener("touchmove", drawSignature, { passive: false });
   signatureCanvas.addEventListener("touchend", stopSignature);
+  restoreSignature();
 }
 
 if (clearSignatureButton) {
@@ -926,6 +1286,10 @@ if (confirmSignatureButton) {
 
     signatureBox.classList.add("signed");
     signatureLine.textContent = "Assinatura confirmada";
+    localState.signatureImage = signatureCanvas.toDataURL("image/png");
+    saveLocalState();
+    addAudit("Assinatura salva", "Assinatura do cliente vinculada a OS-1048");
+    queueOfflineAction("assinatura", "Assinatura OS-1048");
     updateCompletionState();
   });
 }
@@ -963,6 +1327,10 @@ if (verifyChipButton) {
     trackerChipStatus.textContent = `ID CHIP contabilizado: ${trackerChipInput.value.trim()}`;
     trackerChipStatus.classList.add("verified");
     trackerChipStatus.classList.remove("error");
+    localState.trackerChip = trackerChipInput.value.trim();
+    saveLocalState();
+    addAudit("ID CHIP contabilizado", trackerChipInput.value.trim());
+    queueOfflineAction("chip", trackerChipInput.value.trim());
     updateCompletionState();
   });
 }
@@ -976,7 +1344,13 @@ if (finishOsButton) {
       const currentOrder = serviceOrders.find((order) => order.code === "OS-1048");
       if (currentOrder) {
         currentOrder.status = "completed";
+        currentOrder.completedAt = getNowLabel();
+        updateLocalState("serviceOrders", serviceOrders);
+        addAudit("OS concluida", "OS-1048 finalizada com fotos, assinatura e ID CHIP");
+        queueOfflineAction("os-completed", "OS-1048 concluida");
+        notifyLocal("OS-1048 concluida.");
         renderOrderQueue();
+        renderDispatchBoard();
         renderTeamReport();
       }
       currentOsCompletionRegistered = true;
@@ -1000,12 +1374,14 @@ const teamRedirectSelect = document.querySelector(".team-redirect-select");
 const deleteTechButton = document.querySelector(".delete-tech-button");
 let selectedTechnicianId = 1;
 
-const technicians = [
+const defaultTechnicians = [
   { id: 1, name: "Bruno", phone: "(11) 90000-0004", status: "Em atendimento", team: "Equipe 1" },
   { id: 2, name: "Ana", phone: "(11) 90000-0005", status: "A caminho", team: "Equipe 2" },
   { id: 3, name: "Marcos", phone: "(11) 90000-0006", status: "Checklist final", team: "Equipe 3" },
   { id: 4, name: "Diego", phone: "(11) 90000-0007", status: "Disponivel", team: "Equipe 4" }
 ];
+
+let technicians = localState.technicians || defaultTechnicians;
 
 const teamOrder = ["Equipe 1", "Equipe 2", "Equipe 3", "Equipe 4", "Equipe 5"];
 
@@ -1122,6 +1498,9 @@ if (technicianForm) {
     }
 
     const selectedTech = technicians.find((item) => item.id === selectedTechnicianId);
+    updateLocalState("technicians", technicians);
+    addAudit("Tecnico salvo", `${data.name} - ${data.team} - ${data.status}`);
+    queueOfflineAction("tecnico", data.name);
     fillTechnicianForm(selectedTech);
     renderTechnicians();
     technicianFormState.textContent = "Salvo";
@@ -1136,6 +1515,9 @@ if (deleteTechButton) {
     if (index === -1) return;
 
     technicians.splice(index, 1);
+    updateLocalState("technicians", technicians);
+    addAudit("Tecnico excluido", "Cadastro removido localmente");
+    queueOfflineAction("tecnico-delete", "Tecnico removido");
     const nextTech = technicians[index] || technicians[index - 1] || null;
     fillTechnicianForm(nextTech);
     renderTechnicians();
@@ -1143,9 +1525,23 @@ if (deleteTechButton) {
 }
 
 refreshDropzones();
+if (trackerChipInput && localState.trackerChip) {
+  trackerChipInput.value = localState.trackerChip;
+  trackerChipInput.classList.add("verified");
+  trackerChipVerified = true;
+  if (trackerChipStatus) {
+    trackerChipStatus.textContent = `ID CHIP contabilizado: ${localState.trackerChip}`;
+    trackerChipStatus.classList.add("verified");
+  }
+}
 updateCompletionState();
 renderOrderQueue();
+renderDispatchBoard();
 renderTeamReport();
+renderSyncStatus();
+renderAuditLog();
+renderChatThread();
+renderSavedPhotos();
 renderTechnicians();
 fillTechnicianForm(technicians[0]);
 sortServiceOrdersByPriority();

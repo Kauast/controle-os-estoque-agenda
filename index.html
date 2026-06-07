@@ -1026,6 +1026,16 @@
               </div>
             </div>
           </div>
+
+          <div class="material-approval-box">
+            <div class="client-products-head">
+              <strong>Aprovacao do estoque</strong>
+              <span class="pill amber material-pending-count">0 pendentes</span>
+            </div>
+            <div class="material-request-list">
+              <small>Nenhuma solicitacao pendente.</small>
+            </div>
+          </div>
         </section>
 
         <section class="mobile-tech-notes">
@@ -1066,6 +1076,7 @@
           </div>
 
           <button class="secondary-button wide capture-photo-button">Adicionar foto restante</button>
+          <input class="photo-upload-input" type="file" accept="image/*" capture="environment" hidden />
 
           <div class="signature-box" aria-label="Coletar assinatura do cliente">
             <div class="signature-box-head">
@@ -1120,10 +1131,35 @@
             <span class="pill amber">Offline pronto</span>
           </div>
           <div class="advanced-tool-grid">
-            <button class="secondary-button" type="button">Scanner QR OS</button>
-            <button class="secondary-button" type="button">Sincronizar</button>
-            <button class="secondary-button" type="button">Chat supervisor</button>
-            <button class="secondary-button" type="button">Auditoria</button>
+            <button class="secondary-button scan-os-qr-button" type="button">Scanner QR OS</button>
+            <button class="secondary-button sync-offline-button" type="button">Sincronizar</button>
+            <button class="secondary-button chat-supervisor-button" type="button">Chat supervisor</button>
+            <button class="secondary-button audit-button" type="button">Auditoria</button>
+          </div>
+          <div class="advanced-status-card">
+            <strong class="offline-sync-status">Fila local vazia</strong>
+            <small class="notification-status">Notificacoes aguardando permissao do navegador.</small>
+          </div>
+          <div class="os-qr-card" hidden>
+            <div class="qr-label os-qr-label" aria-label="QR Code da OS"></div>
+            <label>
+              Abrir OS pelo QR/codigo
+              <input class="os-qr-input" type="text" placeholder="OS-1048" />
+            </label>
+            <button class="secondary-button wide open-os-by-qr-button" type="button">Abrir OS</button>
+          </div>
+          <div class="chat-card" hidden>
+            <div class="chat-thread">
+              <small>Supervisor: envie uma mensagem curta sobre a OS.</small>
+            </div>
+            <label>
+              Mensagem
+              <input class="chat-input" type="text" placeholder="Ex.: preciso de apoio com o portao" />
+            </label>
+            <button class="secondary-button wide send-chat-button" type="button">Enviar mensagem</button>
+          </div>
+          <div class="audit-card" hidden>
+            <div class="audit-log-list"></div>
           </div>
           <small>Novas OS, fotos, GPS e acoes ficam registradas para sincronizacao e auditoria.</small>
         </section>
