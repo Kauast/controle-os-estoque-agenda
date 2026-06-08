@@ -7,7 +7,7 @@ if (urlParams.get("mobile") === "1" || urlParams.get("view") === "mobile") {
 
 const roleSelect = document.querySelector(".role-select");
 const teamAccessSelects = document.querySelectorAll(".team-access-select");
-const financeNavButton = document.querySelector('.nav-list button[data-admin-only="true"]');
+const financeNavButton = document.querySelector(".nav-list button.finance-nav");
 const teamLoginButtons = document.querySelectorAll(".team-login-button");
 const teamLoginDialog = document.querySelector(".team-login-dialog");
 const teamLoginForm = document.querySelector(".team-login-form");
@@ -477,17 +477,21 @@ const desktopSections = {
   ordens: [".orders-panel"],
   estoque: [".stock-panel"],
   clientes: [".client-history-panel"],
-  equipe: [".team-panel", ".profiles-panel"],
+  equipe: [".team-panel"],
+  usuarios: [".profiles-panel"],
   rastreamento: [".tracking-panel"],
   financeiro: [".finance-panel"],
   relatorios: [".reports-panel"]
 };
 
 function getDesktopSectionKey(button) {
+  // Botoes de subnavegacao do estoque pertencem todos a secao "estoque".
+  if (button.dataset.stockTarget) return "estoque";
   const key = button.textContent.trim().toLowerCase();
   const aliases = {
     localizacao: "rastreamento",
-    valores: "financeiro"
+    valores: "financeiro",
+    equipes: "equipe"
   };
   return aliases[key] || key;
 }
@@ -528,6 +532,7 @@ function canAccessSection(sectionKey) {
   if (sectionKey === "estoque") return canAccessStock();
   if (sectionKey === "clientes") return canAccessClientArea();
   if (sectionKey === "equipe") return canAccessTeamManagement();
+  if (sectionKey === "usuarios") return role === "admin";
   if (sectionKey === "rastreamento") return canAccessTracking();
   if (sectionKey === "financeiro") return role === "admin";
   if (sectionKey === "relatorios") return canAccessReports();
@@ -541,7 +546,12 @@ function getActiveDesktopSection() {
 
 function setActiveDesktopNav(sectionKey) {
   document.querySelectorAll(".nav-list button").forEach((item) => {
-    item.classList.toggle("active", getDesktopSectionKey(item) === sectionKey);
+    if (item.dataset.stockTarget) {
+      // Na secao de estoque, destaca por padrao o primeiro item (Produtos).
+      item.classList.toggle("active", sectionKey === "estoque" && item.dataset.stockTarget === "stock-produtos");
+    } else {
+      item.classList.toggle("active", getDesktopSectionKey(item) === sectionKey);
+    }
   });
 }
 
@@ -573,22 +583,44 @@ function showDesktopSection(sectionKey, shouldScroll = true) {
   document.querySelector(selectors[0])?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
+// Alvos de rolagem para a navegacao inferior do tecnico (mobile).
+const mobileNavTargets = {
+  "ver os": ".mobile-os-list",
+  "ver no mapa": ".mobile-tracking-panel",
+  "solicitar material": ".mobile-form"
+};
+
 navButtons.forEach((button) => {
   button.addEventListener("click", () => {
     if (button.dataset.adminOnly === "true" && !document.body.classList.contains("is-admin")) return;
 
     if (button.closest(".nav-list")) {
+      // Subnavegacao do estoque: abre a secao e rola ate o bloco escolhido.
+      if (button.dataset.stockTarget) {
+        if (!canAccessStock()) return;
+        showDesktopSection("estoque", false);
+        document.querySelectorAll(".nav-list button").forEach((item) => item.classList.remove("active"));
+        button.classList.add("active");
+        document.getElementById(button.dataset.stockTarget)?.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+
       const sectionKey = getDesktopSectionKey(button);
       if (!canAccessSection(sectionKey)) return;
       showDesktopSection(sectionKey);
-    } else if (button.closest(".bottom-nav") && button.textContent.trim().toLowerCase() === "rota") {
-      if (!canAccessTracking()) return;
+    } else if (button.closest(".bottom-nav")) {
+      const label = button.textContent.trim().toLowerCase();
+      if (label === "ver no mapa" && !canAccessTracking()) return;
+      if (button.classList.contains("stock-only") && !canAccessStock()) return;
+
       const group = button.parentElement.querySelectorAll("button");
       group.forEach((item) => item.classList.remove("active"));
       button.classList.add("active");
-      document.querySelector(".mobile-tracking-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    } else if (button.closest(".bottom-nav") && button.classList.contains("stock-only") && !canAccessStock()) {
-      return;
+
+      const target = mobileNavTargets[label];
+      if (target) {
+        document.querySelector(target)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
     } else {
       const group = button.parentElement.querySelectorAll("button");
       group.forEach((item) => item.classList.remove("active"));
@@ -623,6 +655,7 @@ const clientProductList = document.querySelector(".client-product-list");
 const clientTotal = document.querySelector(".client-total");
 const materialRequestList = document.querySelector(".material-request-list");
 const materialPendingCount = document.querySelector(".material-pending-count");
+const desktopMaterialRequestList = document.querySelector(".desktop-material-request-list");
 let selectedProducts = localState.selectedProducts || [{ name: "Fonte 12V 2A", qty: 1, price: 48 }];
 let materialRequests = localState.materialRequests || [];
 
@@ -651,18 +684,8 @@ function renderClientProducts() {
   updateLocalState("selectedProducts", selectedProducts);
 }
 
-function renderMaterialRequests() {
-  if (!materialRequestList || !materialPendingCount) return;
-
-  const pending = materialRequests.filter((request) => request.status === "pendente");
-  materialPendingCount.textContent = `${pending.length} pendente${pending.length === 1 ? "" : "s"}`;
-
-  if (materialRequests.length === 0) {
-    materialRequestList.innerHTML = "<small>Nenhuma solicitacao pendente.</small>";
-    return;
-  }
-
-  materialRequestList.innerHTML = materialRequests.map((request) => {
+function buildMaterialRequestMarkup() {
+  return materialRequests.map((request) => {
     const canApprove = ["admin", "estoque"].includes(roleSelect?.value || "admin") && request.status === "pendente";
     return `
       <article class="material-request-item" data-request-id="${request.id}">
@@ -677,6 +700,20 @@ function renderMaterialRequests() {
       </article>
     `;
   }).join("");
+}
+
+function renderMaterialRequests() {
+  const pending = materialRequests.filter((request) => request.status === "pendente");
+  const pendingLabel = `${pending.length} pendente${pending.length === 1 ? "" : "s"}`;
+  const markup = materialRequests.length === 0
+    ? "<small>Nenhuma solicitacao pendente.</small>"
+    : buildMaterialRequestMarkup();
+
+  if (materialPendingCount) materialPendingCount.textContent = pendingLabel;
+  if (materialRequestList) materialRequestList.innerHTML = markup;
+
+  // Espelha as solicitacoes no painel desktop do estoque (Solicitacoes).
+  if (desktopMaterialRequestList) desktopMaterialRequestList.innerHTML = markup;
 }
 
 function createMaterialRequest(item) {
@@ -755,13 +792,19 @@ if (addProductButton) {
 renderClientProducts();
 renderMaterialRequests();
 
+function handleMaterialReviewClick(event) {
+  const approveButton = event.target.closest(".approve-material-button");
+  const rejectButton = event.target.closest(".reject-material-button");
+  if (approveButton) updateMaterialRequest(approveButton.dataset.requestId, "aprovado");
+  if (rejectButton) updateMaterialRequest(rejectButton.dataset.requestId, "reprovado");
+}
+
 if (materialRequestList) {
-  materialRequestList.addEventListener("click", (event) => {
-    const approveButton = event.target.closest(".approve-material-button");
-    const rejectButton = event.target.closest(".reject-material-button");
-    if (approveButton) updateMaterialRequest(approveButton.dataset.requestId, "aprovado");
-    if (rejectButton) updateMaterialRequest(rejectButton.dataset.requestId, "reprovado");
-  });
+  materialRequestList.addEventListener("click", handleMaterialReviewClick);
+}
+
+if (desktopMaterialRequestList) {
+  desktopMaterialRequestList.addEventListener("click", handleMaterialReviewClick);
 }
 
 const defaultInventoryProducts = [
@@ -913,6 +956,33 @@ function renderInventory() {
       </div>
     `).join("");
   }
+
+  renderDashboardMetrics();
+}
+
+// Atualiza os 4 KPIs do painel a partir dos dados reais em memoria.
+// Observacao: "OS atrasadas" usa prioridade alta como aproximacao ate
+// existir um campo de prazo/SLA no modelo de dados.
+function renderDashboardMetrics() {
+  const orders = Array.isArray(serviceOrders) ? serviceOrders : [];
+  const emAndamento = orders.filter((order) => order.status !== "completed").length;
+  const atrasadas = orders.filter((order) => order.status !== "completed" && order.priority === "high").length;
+
+  const disponiveis = teamOrder.filter((team) => {
+    const fallback = (Array.isArray(teamLocations) ? teamLocations : []).find((item) => item.team === team)?.status;
+    return getTrackingStatus(team, fallback) === "Disponivel";
+  }).length;
+
+  const critico = (Array.isArray(inventoryProducts) ? inventoryProducts : []).filter((product) => product.qty <= product.min).length;
+
+  const setMetric = (selector, value) => {
+    const el = document.querySelector(selector);
+    if (el) el.textContent = value;
+  };
+  setMetric(".metric-os-andamento", emAndamento);
+  setMetric(".metric-os-atrasadas", atrasadas);
+  setMetric(".metric-equipes-disponiveis", disponiveis);
+  setMetric(".metric-estoque-critico", critico);
 }
 
 function registerStockMovement({ product, type, qty, reason, user = "Estoque" }) {
@@ -2381,6 +2451,9 @@ function renderTracking() {
       renderTracking();
     });
   });
+
+  syncTeamSummaries?.();
+  renderDashboardMetrics();
 }
 
 function refreshTrackingPositions() {
@@ -2412,6 +2485,12 @@ function syncTeamSummaries() {
     const team = card.dataset.teamDetail;
     const members = getTeamMembers(team);
     card.dataset.teamMembers = members;
+
+    const location = (Array.isArray(teamLocations) ? teamLocations : []).find((item) => item.team === team);
+    const lastUpdate = card.querySelector(".team-last-update");
+    if (lastUpdate && location?.updated) {
+      lastUpdate.textContent = location.updated === "Agora" ? "Agora" : `Atualizado ${location.updated}`;
+    }
 
     if (selectedTeamTitle?.textContent === team) {
       selectedTeamCopy.textContent = `${members} - ${card.dataset.teamState} - ${card.dataset.teamOs}`;
@@ -2474,7 +2553,18 @@ function renderTechnicians() {
 }
 
 teamStatusCards.forEach((card) => {
-  card.addEventListener("click", () => {
+  card.addEventListener("click", (event) => {
+    // "Ver no mapa" abre a tela completa de rastreamento focando a equipe.
+    if (event.target.closest(".team-map-hint")) {
+      const team = card.dataset.teamDetail;
+      if (!canAccessTracking()) return;
+      activeTrackingTeam = team;
+      if (!canSeeAllOrders()) setActiveTeam(team);
+      showDesktopSection("rastreamento");
+      renderTracking?.();
+      return;
+    }
+
     teamStatusCards.forEach((item) => item.classList.remove("active"));
     card.classList.add("active");
 

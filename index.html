@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Controle OS e Estoque</title>
-    <link rel="stylesheet" href="./styles.css?v=stock-tech-1" />
+    <link rel="stylesheet" href="./styles.css?v=ux-reorg-1" />
   </head>
   <body>
     <div class="app-shell">
@@ -19,14 +19,30 @@
 
         <nav class="nav-list" aria-label="Menu principal">
           <button class="active dashboard-nav">Painel</button>
-          <button class="operations-nav">Agenda</button>
-          <button class="operations-nav">Ordens</button>
-          <button class="stock-only">Estoque</button>
-          <button class="client-access-only">Clientes</button>
-          <button class="team-admin-nav">Equipe</button>
-          <button class="tracking-only">Localizacao</button>
-          <button data-admin-only="true">Valores</button>
-          <button class="reports-access-only">Relatorios</button>
+
+          <div class="nav-group">
+            <span class="nav-group-label">Operacao</span>
+            <button class="operations-nav">Agenda</button>
+            <button class="operations-nav">Ordens</button>
+            <button class="team-admin-nav">Equipes</button>
+            <button class="tracking-only">Localizacao</button>
+          </div>
+
+          <div class="nav-group stock-only">
+            <span class="nav-group-label">Estoque</span>
+            <button class="stock-only" data-stock-target="stock-produtos">Produtos</button>
+            <button class="stock-only" data-stock-target="stock-solicitacoes">Solicitacoes</button>
+            <button class="stock-write-only" data-stock-target="stock-movimento">Entrada e Saida</button>
+            <button class="stock-only" data-stock-target="stock-historico">Historico</button>
+          </div>
+
+          <div class="nav-group">
+            <span class="nav-group-label">Administracao</span>
+            <button class="client-access-only">Clientes</button>
+            <button class="users-nav" data-admin-only="true">Usuarios</button>
+            <button class="finance-nav" data-admin-only="true">Financeiro</button>
+            <button class="reports-access-only">Relatorios</button>
+          </div>
         </nav>
 
         <div class="sidebar-summary">
@@ -73,23 +89,23 @@
         <section class="metrics-grid" aria-label="Indicadores">
           <article class="metric-card">
             <span>OS em andamento</span>
-            <strong>18</strong>
+            <strong class="metric-os-andamento">18</strong>
             <small>4 com prioridade alta</small>
+          </article>
+          <article class="metric-card metric-card-alert">
+            <span>OS atrasadas</span>
+            <strong class="metric-os-atrasadas">3</strong>
+            <small>Com prazo vencido hoje</small>
+          </article>
+          <article class="metric-card">
+            <span>Equipes disponiveis</span>
+            <strong class="metric-equipes-disponiveis">1</strong>
+            <small>Equipe 5 em plantao</small>
           </article>
           <article class="metric-card stock-only">
             <span>Estoque critico</span>
-            <strong>9</strong>
+            <strong class="metric-estoque-critico">9</strong>
             <small>Itens abaixo do minimo</small>
-          </article>
-          <article class="metric-card">
-            <span>Prazo em dia</span>
-            <strong>92%</strong>
-            <small>Ultimos 30 dias</small>
-          </article>
-          <article class="metric-card financial-content">
-            <span>Faturamento previsto</span>
-            <strong>R$ 86,4k</strong>
-            <small>Materiais + servicos agendados</small>
           </article>
         </section>
 
@@ -301,7 +317,7 @@
             </div>
 
             <div class="inventory-layout">
-              <section class="inventory-products">
+              <section class="inventory-products" id="stock-produtos">
                 <div class="inventory-tools">
                   <label>
                     Scanner QR / SKU
@@ -372,7 +388,7 @@
               </section>
             </div>
 
-            <div class="inventory-movement-grid">
+            <div class="inventory-movement-grid" id="stock-movimento">
               <form class="stock-movement-form stock-entry-form stock-write-only">
                 <div class="form-section-title">
                   <span>Entrada</span>
@@ -428,7 +444,17 @@
               </section>
             </div>
 
-            <section class="stock-history-panel stock-write-only">
+            <section class="stock-requests-panel" id="stock-solicitacoes">
+              <div class="form-section-title">
+                <span>Solicitacoes</span>
+                <strong>Pedidos de material das equipes</strong>
+              </div>
+              <div class="desktop-material-request-list">
+                <small class="desktop-material-empty">Nenhuma solicitacao pendente.</small>
+              </div>
+            </section>
+
+            <section class="stock-history-panel stock-write-only" id="stock-historico">
               <div class="form-section-title">
                 <span>Historico</span>
                 <strong>Entradas e saidas recentes</strong>
@@ -853,22 +879,32 @@
               <button class="team-status-card active" data-team-detail="Equipe 1" data-team-state="Em atendimento" data-team-members="Bruno, Leo" data-team-os="OS-1048">
                 <strong>Equipe 1</strong>
                 <span>Em atendimento</span>
+                <small class="team-last-update">Agora</small>
+                <span class="team-map-hint">Ver no mapa</span>
               </button>
               <button class="team-status-card" data-team-detail="Equipe 2" data-team-state="A caminho" data-team-members="Ana, Rui" data-team-os="OS-1050">
                 <strong>Equipe 2</strong>
                 <span>A caminho</span>
+                <small class="team-last-update">Agora</small>
+                <span class="team-map-hint">Ver no mapa</span>
               </button>
               <button class="team-status-card" data-team-detail="Equipe 3" data-team-state="Em rota" data-team-members="Marcos, Bia" data-team-os="OS-1049">
                 <strong>Equipe 3</strong>
                 <span>Em rota</span>
+                <small class="team-last-update">Agora</small>
+                <span class="team-map-hint">Ver no mapa</span>
               </button>
               <button class="team-status-card" data-team-detail="Equipe 4" data-team-state="Agendada" data-team-members="Diego, Caio" data-team-os="OS-1051">
                 <strong>Equipe 4</strong>
                 <span>Agendada</span>
+                <small class="team-last-update">Agora</small>
+                <span class="team-map-hint">Ver no mapa</span>
               </button>
               <button class="team-status-card" data-team-detail="Equipe 5" data-team-state="Disponivel" data-team-members="Plantao" data-team-os="Sem OS">
                 <strong>Equipe 5</strong>
                 <span>Disponivel</span>
+                <small class="team-last-update">Agora</small>
+                <span class="team-map-hint">Ver no mapa</span>
               </button>
             </div>
 
@@ -1273,7 +1309,7 @@
             <small class="tracker-chip-status">ID do chip pendente</small>
           </div>
 
-          <button class="primary-button wide finish-os-button" disabled>Concluir OS</button>
+          <button class="primary-button wide finish-os-button" disabled>Finalizar OS</button>
         </section>
 
         <section class="mobile-client-history">
@@ -1339,10 +1375,10 @@
         </section>
 
         <nav class="bottom-nav" aria-label="Menu do tecnico">
-          <button class="active">OS</button>
+          <button class="active">Ver OS</button>
           <button>Agenda</button>
-          <button class="tracking-only">Rota</button>
-          <button class="stock-only">Estoque</button>
+          <button class="tracking-only">Ver no mapa</button>
+          <button class="stock-only">Solicitar material</button>
           <button>Perfil</button>
         </nav>
       </main>
@@ -1540,6 +1576,6 @@
     </dialog>
 
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-    <script src="./app.js?v=stock-tech-1"></script>
+    <script src="./app.js?v=ux-reorg-1"></script>
   </body>
 </html>

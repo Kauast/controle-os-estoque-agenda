@@ -84,6 +84,13 @@ body:not(.role-admin):not(.role-atendimento) .team-admin-nav,
   display: none !important;
 }
 
+/* Grupos do menu: oculta blocos inteiros (com o rotulo) quando o perfil
+   nao tem acesso, evitando cabecalhos de secao vazios. */
+body.role-estoque .nav-group:not(.stock-only),
+body.role-tecnico .nav-group:not(.stock-only) {
+  display: none !important;
+}
+
 button,
 input,
 select {
@@ -155,16 +162,36 @@ button {
 
 .nav-list {
   display: grid;
-  gap: 8px;
+  gap: 4px;
+  overflow-y: auto;
+}
+
+.nav-group {
+  display: grid;
+  gap: 2px;
+  margin-top: 8px;
+}
+
+.nav-group-label {
+  display: block;
+  padding: 4px 14px 2px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+  pointer-events: none;
+  user-select: none;
 }
 
 .nav-list button {
-  min-height: 44px;
+  min-height: 40px;
   border-radius: 8px;
   padding: 0 14px;
   color: #cbd1d8;
   background: transparent;
   text-align: left;
+  font-size: 14px;
 }
 
 .has-icon {
@@ -2110,6 +2137,64 @@ th {
   margin-top: 4px;
   color: var(--muted);
   font-size: 13px;
+}
+
+.team-status-card .team-last-update {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.team-status-card .team-map-hint {
+  margin-top: 6px;
+  color: var(--teal);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.team-status-card .team-map-hint:hover {
+  text-decoration: underline;
+}
+
+/* KPI de alerta no painel */
+.metric-card-alert {
+  border-color: rgba(183, 53, 53, 0.35);
+  background: var(--red-soft);
+}
+
+.metric-card-alert strong {
+  color: var(--red);
+}
+
+/* Painel de solicitacoes de material (estoque desktop) */
+.stock-requests-panel {
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-soft);
+}
+
+.desktop-material-request-list {
+  margin-top: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.desktop-material-request-list .material-request-item {
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  display: grid;
+  gap: 4px;
+}
+
+.desktop-material-request-list .material-request-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
 }
 
 .technician-routing {
